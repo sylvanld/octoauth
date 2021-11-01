@@ -1,0 +1,147 @@
+html, body{
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+body{
+    width: 100%;
+    height: 100%;
+    font-family: Roboto, sans-serif;
+    background-image: url("https://img.wallpapersafari.com/desktop/1920/1080/46/34/Mxjr2p.jpg");
+}
+
+main{
+    width: 100%;
+    justify-content: center;
+    display: flex;
+}
+
+main > form{
+    box-shadow: 3px 5px 20px rgb(0 0 0 / 50%);
+    color: white;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(0, 0, 0, 0.9);
+    padding: 4em;
+    width: 32em;
+    margin-top: 10vh;
+    box-sizing: border-box;
+}
+
+main > form > footer{
+    padding: 0 1em;
+}
+
+/**
+Change default elements sizing and spacing.
+*/
+
+a{
+    text-decoration: none;
+}
+
+h2{
+    font-size: 1.5em;
+    margin-block: 0;
+}
+h3 {
+    font-size: 2em;
+    margin-block-start: 0;
+}
+
+h4{
+    font-size: 1.3em;
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+textarea:focus, input:focus{
+    outline: none;
+}
+
+/**
+Material styling of fieldsets
+*/
+
+fieldset{
+    position: relative;
+    border: solid 1px white;
+    padding: 5px;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    border-radius: 5px;
+}
+
+fieldset > input{
+    color: white;
+    width: 100%;
+    background-color: inherit;
+    border: 0;
+    height: 32px;
+    padding: 0 1em;
+    box-sizing: border-box;
+}
+
+fieldset > legend{
+    text-align: left;
+    margin-left: 1em;
+}
+
+/* Change the white to any color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active{
+    box-shadow: 0 0 0 30px black inset !important;
+    -webkit-box-shadow: 0 0 0 30px black inset !important;
+    -webkit-text-fill-color: #1976d2 !important;
+}
+
+input{
+    color: #1976d2 !important;
+}
+
+/**
+Input error styling
+*/
+fieldset.error{
+    border-color: red !important;
+}
+fieldset.error > legend{
+    color: red !important;
+}
+fieldset.error > input{
+    color: red !important;
+}
+
+/**
+Color palette
+*/
+*[color=primary]{color: #1976d2}
+*[color=accent]{color: #e91e63}
+*[color=logo]{
+    background: -webkit-linear-gradient(45deg, #1976d2, #1976d2, #1976d2, #e91e63, #e91e63, #e91e63);
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+*[background=primary]{color: white; background-color: #1976d2}
+*[background=accent]{color: black; background-color: #e91e63}
+
+
+/**
+Customize buttons style.
+*/
+button{
+    border: 0;
+    padding: 0.8em 1.3em;
+    cursor: pointer;
+}
+button[icon]{
+    background-color: transparent;
+}
+button[rounded]{
+    border-radius: 5em
+}

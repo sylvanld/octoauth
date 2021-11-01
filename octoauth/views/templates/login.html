@@ -1,0 +1,138 @@
+{% extends 'layout/form.html.j2' %}
+
+{% block content %}
+<main>
+    <form id="loginForm" method="POST" action="">
+        <h2 color="logo">OctoAuth</h2>
+        <h3 color="primary">Connexion</h3>
+
+        <p style="margin-top: 0">
+            Login to your OctoAuth account to continue...
+        </p>
+        
+        <div id="accountInfo" style="justify-content: center; align-items: center;">
+            <img id="profilePicture" style="margin: 0 2em; max-width: 40px; max-height: 40px; border-radius: 20px;" src="" alt="">
+            <h4 id="displayedName"></h4>
+            <div style="flex: 1;"></div>
+            <button id="buttonChangeAccount" type="button" icon color="accent">
+                <i class="material-icons">cancel</i>
+            </button>
+        </div>
+
+        <fieldset id="usernameField" class="form-field">
+            <legend>Enter your username</legend>
+            <input type="text" id="usernameInput" name="username" autocomplete="off" required>
+        </fieldset>
+
+        <fieldset id="passwordField" class="form-field">
+            <legend>Enter your password</legend>
+            <input name="password" id="passwordInput" autocomplete="off" required>
+        </fieldset>
+        
+        <p id="errorMessage" style="color: red"></p>
+
+        <footer style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="text-align: left; line-height: 1.5em">
+                <a id="buttonAskResetPassword" href="/recover-password" color="accent">Forgot your password?</a>
+                <a href="/register?redirect={{redirect}}" color="accent">Create an account</a>
+            </div>
+
+            <button type="submit" style="margin-top: 1em" background="primary" rounded>
+                Continue
+            </button>
+        </footer>
+    </form>
+</main>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    (()=>{
+        const loginForm = $("loginForm");
+        let state = "username"; // authorized states: username, password
+
+        function setAccount(account){
+            state = "password";
+
+            // display account infos
+            $("accountInfo").style.display = "flex";
+            if(!!account.profile_url){
+                $("profilePicture").src = account.profile_url;
+            }else{
+                $("profilePicture").src = "https://icon-library.com/images/my-account-icon-png/my-account-icon-png-22.jpg";
+            }
+            $("displayedName").innerText = account.username;
+            // hide account prompt
+            $("usernameField").style.display = "none";
+            $("buttonAskResetPassword").style.display = "block";
+            // ask password
+            $("passwordField").style.display = "block";
+            $("passwordInput").type = "password";
+            $("passwordInput").focus();
+        }
+
+        function clearAccount(){
+            state = "username";
+
+            // hide account infos (empty)
+            $("accountInfo").style.display = "none";
+            // hide password prompt
+            $("passwordField").style.display = "none";
+            $("passwordInput").type = "hidden";
+            // show username prompt
+            $("buttonAskResetPassword").style.display = "none";
+            $("usernameField").style.display = "block";
+            $("usernameInput").focus();
+        }
+
+        async function checkCredentials(){
+            const form = parseFormData($('loginForm'));
+            const response = await requests.post("/login", {form});
+            if(response.status === 401){
+                return false;
+            }
+            return true;
+        }
+
+        async function validateForm(){
+            const data = new FormData(loginForm);
+            clearErrors();
+
+            if(state === "username"){
+                const response = await requests.get("/api/accounts", {username: data.get("username")});
+                if(response.status != 200){
+                    return false;
+                }
+
+                const accounts = response.data;
+                if(accounts.length === 0){
+                    showFieldsError(`No account exists with this username.`, $("usernameField"));
+                    return false;
+                }else{
+                    setAccount(accounts[0]);
+                    return false
+                }
+            }            
+
+            if(state === "password" && !await checkCredentials()){
+                showFieldsError("Wrong password for this account.", $("passwordField"));
+                return false;
+            }
+
+            return true;
+        }
+
+        loginForm.addEventListener("submit", async function(event){
+            event.preventDefault();
+            const validationSucceed = await validateForm();
+            if(validationSucceed){
+                this.submit();
+            }
+        })
+
+        $('buttonChangeAccount').addEventListener('click', clearAccount);
+
+        clearAccount();
+    })()
+</script>
+{% endblock scripts %}

@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 119
+
+[tool.pylint.messages_control]
+disable = "bad-continuation,too-few-public-methods"
+max-line-length=119
+extension-pkg-whitelist="pydantic"
+
+[tool.pytest.ini_options]
+addopts = "-s -v"

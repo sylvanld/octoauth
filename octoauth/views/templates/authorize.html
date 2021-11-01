@@ -1,0 +1,70 @@
+{% extends 'layout/form.html.j2' %}
+
+{% block content %}
+<main>
+    <form id="loginForm" method="POST" action="">
+        <h2 color="logo">OctoAuth</h2>
+        <h3 color="primary">Authorize</h3>
+
+        <p>
+            The following application requires access to your account.<br>
+            <strong>Be careful and grant it only if you trust this application.</strong>
+        </p>
+
+        
+
+        <div style="display: flex; justify-content: center;">
+            <div title="{{application.description}}">
+                {% if application.icon_uri %}
+                <img src="{{application.icon_uri}}" style="margin-right: 1em; max-width: 50px; height: 50px" alt="">
+                {% else %}
+                <img src="" alt="">
+                {% endif %}
+
+                <p>{{application.name}}</p>
+            </div>
+
+            <div style="margin: 0 2em">
+                <i class="material-icons" style="font-size: 4em" color="primary">swap_horiz</i>
+            </div>
+
+            <div style="text-align: center">
+                <img src="{{account.profile_url}}" style="margin-right: 1em; max-width: 50px; max-height: 50px; border-radius: 25px" alt="">
+                <p>
+                    {{account.username}}
+                </p>
+            </div>
+        </div>
+
+        <hr>
+
+        <strong>Permissions required</strong>
+        <div>to be continued...</div>
+
+        <ul style="padding-left: 0; list-style-type: none;">
+            {% for scope in scopes %}
+            <li>
+                <label>
+                    <input type="checkbox" name="scope[{{scope.code}}]" onchange="onScopesChange(event)" checked>
+                    {{scope.description}}
+                </label>
+                
+            </li>
+            {% endfor %}
+        </ul>
+
+        <hr>
+
+        <div style="display: flex;">
+            <!-- Accent-colored raised button -->
+            <button style="flex: 1; margin-right: 1em" type="submit" name="choice" value="deny" background="accent" rounded>
+                Deny
+            </button>
+            <!-- Colored raised button -->
+            <button style="flex: 1" type="submit" name="choice" value="authorize" background="primary" rounded>
+                Authorize
+            </button>
+        </div>
+    </form>
+</main>
+{% endblock content %}

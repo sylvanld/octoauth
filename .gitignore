@@ -1,0 +1,11 @@
+# ignore local playground
+snippets/
+
+# ignore python files
+.pytest_cache/
+__pycache__/
+.venv/
+
+# ignore assets
+assets/
+*.sqlite

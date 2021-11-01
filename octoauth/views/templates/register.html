@@ -1,0 +1,92 @@
+{% extends 'layout/form.html.j2' %}
+
+{% block content %}
+<main>
+    <form id="registrationForm" method="POST" action="">
+        <h2 color="logo">OctoAuth</h2>
+        <h3 color="primary">Create your account</h3>
+
+        <fieldset class="form-field">
+            <legend>Email address</legend>
+            <input type="text" name="email" autocomplete="off" required>
+        </fieldset>
+
+        <fieldset id="usernameField" class="form-field">
+            <legend>Username</legend>
+            <input type="text" name="username" autocomplete="off" required>
+        </fieldset>
+
+        <fieldset class="form-field">
+            <legend>Profile picture URL</legend>
+            <input type="text" name="profile_url" autocomplete="off">
+        </fieldset>
+
+        <fieldset id="passwordField" class="form-field">
+            <legend>Password</legend>
+            <input type="password" name="password" autocomplete="off" required>
+        </fieldset>
+
+        <fieldset id="confirmPasswordField" class="form-field">
+            <legend>Confirm password</legend>
+            <input type="password" id="confirmPassword" autocomplete="off" required>
+        </fieldset>
+        
+        <p id="errorMessage" style="color: red"></p>
+
+        <footer style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="text-align: left; line-height: 1.5em">
+                <a href="/login" color="accent">Already registered?</a>
+            </div>
+
+            <button type="submit" style="margin-top: 1em" background="primary" rounded>
+                Register
+            </button>
+        </footer>
+    </form>
+</main>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    (()=>{
+        const $ = (s)=>document.querySelector("#" + s);
+
+        /**
+         * Returns true if password confirmation matches and username is available
+         */
+        async function validateForm(){
+            const data = new FormData($("registrationForm"));
+            clearErrors();
+
+            // ensure that password confirmation match
+            if($("confirmPassword").value !== data.get('password')){
+                showFieldsError('passwords does not matches', $("passwordField"), $("confirmPasswordField"));
+                return false;
+            };
+            
+            // check that this username is available
+            accounts = await requests.get('/api/accounts', {username: data.get('username')});
+            console.log(accounts);
+
+            // prevent form submission an account exists with this username;
+            if(accounts.length > 0){
+                showFieldsError('Username already exists', $("usernameField"));
+                return false;
+            }
+
+            return true
+        }
+        
+        /**
+         * Prevent submission while form validation does not succeed.
+        */
+        $("registrationForm").addEventListener("submit", async function(event){
+            event.preventDefault();
+            const validationSucceed = await validateForm();
+            if(validationSucceed){
+                this.submit();
+            }
+        });
+    })()
+</script>
+{% endblock scripts %}
