@@ -19,6 +19,10 @@ class ApplicationReadDTO(BaseDTO):
     icon_uri: str = None
 
 
+class ApplicationReadOnceDTO(ApplicationReadDTO):
+    client_secret: str
+
+
 class ApplicationCreateDTO(BaseDTO):
     name: str
     description: str
@@ -28,8 +32,8 @@ class ApplicationCreateDTO(BaseDTO):
 
 class ApplicationUpdateDTO(BaseDTO):
     # client_id can't be modified once set
-    name: str
-    description: str
+    name: str = None
+    description: str = None
     icon_uri: str = None
 
 
@@ -56,6 +60,14 @@ class GrantType(StringEnum):
 class BaseTokenRequestDTO:
     client_id: str
     client_secret: Optional[str]
+
+
+@dataclass
+class TokenRequestWithImplicitGrantsDTO:
+    account_uid: str
+    client_id: str
+    redirect_uri: str
+    scope: str
 
 
 @dataclass

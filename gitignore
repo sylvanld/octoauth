@@ -1,7 +1,0 @@
-# ignore python cached files
-.pytest_cache/
-__pycache__/
-
-# ignore assets
-assets/
-*.sqlite

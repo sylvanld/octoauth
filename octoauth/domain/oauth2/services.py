@@ -1,18 +1,22 @@
 from datetime import datetime
-from typing import List
+from typing import Iterable, List, Set
 
 from octoauth.architecture.database import use_database
 from octoauth.architecture.query import Filters
-from octoauth.domain.oauth2.database import Application, AuthorizationCode, Scope
+from octoauth.architecture.security import generate_access_token
+from octoauth.domain.oauth2.database import Application, AuthorizationCode, Grant, Scope
 from octoauth.settings import SETTINGS
 
 from .dtos import (
     ApplicationCreateDTO,
     ApplicationReadDTO,
+    ApplicationReadOnceDTO,
     ApplicationUpdateDTO,
     ScopeDTO,
+    TokenGrantDTO,
     TokenRequestWithAuthorizationCodeDTO,
     TokenRequestWithClientCredentialsDTO,
+    TokenRequestWithImplicitGrantsDTO,
     TokenRequestWithRefreshTokenDTO,
 )
 
@@ -42,7 +46,7 @@ class ApplicationService:
         Declare an oauth2 client application.
         """
         application = Application.create(**application_create.dict())
-        return ApplicationReadDTO.from_orm(application)
+        return ApplicationReadOnceDTO.from_orm(application)
 
     @classmethod
     @use_database
@@ -52,7 +56,7 @@ class ApplicationService:
         """
         application = Application.get_by_uid(application_uid)
         application.update(**application_update.dict())
-        return ApplicationReadDTO.from_orm(application)
+        return ApplicationReadOnceDTO.from_orm(application)
 
     @classmethod
     @use_database
@@ -73,7 +77,7 @@ class ScopeService:
 
     @staticmethod
     @use_database
-    def get_scopes_from_string(scope: str):
+    def get_scopes_from_string(scope: str) -> List[ScopeDTO]:
         if not scope:
             raise ValueError("ScopeService.get_scopes_from_string can't parse empty scope")
 
@@ -88,6 +92,28 @@ class ScopeService:
 
         return [ScopeDTO.from_orm(scope) for scope in scopes]
 
+    @staticmethod
+    @use_database
+    def get_client_granted_scopes(account_uid: str, client_id: str) -> Set[ScopeDTO]:
+        """
+        Retrieve the list of scopes granted to a client
+        """
+        grants: List[Grant] = Grant.query.filter_by(account_uid=account_uid, client_id=client_id).all()
+        return set([grant.scope_code for grant in grants])
+
+    @classmethod
+    @use_database
+    def add_client_granted_scopes(cls, account_uid: str, client_id: str, scopes: List[str]) -> Set[ScopeDTO]:
+        old_granted_scopes = cls.get_client_granted_scopes(account_uid, client_id)
+        new_granted_scopes = set([scope_code for scope_code in scopes])
+
+        # create missing client grant
+        for scope_code in new_granted_scopes.difference(old_granted_scopes):
+            Grant.create(
+                account_uid=account_uid,
+                client_id=client_id,
+                scope_code=scope_code
+            )
 
 class AuthorizationService:
     @classmethod
@@ -108,11 +134,22 @@ class AuthorizationService:
                 "In order to use PKCE, you must provide both 'code_challenge' and 'code_challenge_method' parameters"
             )
 
+        if not scope:
+            raise ValueError("Scope argument is mandatory to generate client_id")
+
+        ScopeService.add_client_granted_scopes(account_uid, client_id, scope.split(','))
+
+        application_grants = Grant.query.filter(
+            Grant.account_uid == account_uid,
+            Grant.client_id == client_id,
+            Grant.scope_code.in_(scope.split(','))
+        ).all()
+
         authorization_code = AuthorizationCode.create(
             expires=datetime.utcnow() + SETTINGS.AUTHORIZATION_CODE_EXPIRES,
             code_challenge=code_challenge,
             code_challenge_method=code_challenge_method,
-            grants=[],
+            grants=application_grants,
         )
 
         return authorization_code.code
@@ -132,6 +169,15 @@ class AuthorizationService:
 
 
 class TokenService:
+    @staticmethod
+    def generate_token_from_implicit_grant(request: TokenRequestWithImplicitGrantsDTO):
+        expires = datetime.utcnow() + SETTINGS.ACCESS_TOKEN_EXPIRES
+        return TokenGrantDTO(
+            access_token=generate_access_token(account_uid=request.account_uid, client_id=request.client_id, expires=SETTINGS.ACCESS_TOKEN_EXPIRES, scope=request.scope),
+            expires=expires.timestamp(),
+            token_type="Bearer"
+        )
+    
     @staticmethod
     def generate_token_from_authorization_code(request: TokenRequestWithAuthorizationCodeDTO):
         ...

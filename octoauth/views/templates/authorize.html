@@ -7,7 +7,7 @@
         <h3 color="primary">Authorize</h3>
 
         <p>
-            The following application requires access to your account.<br>
+            The following application requires access to your account.
             <strong>Be careful and grant it only if you trust this application.</strong>
         </p>
 
@@ -25,35 +25,38 @@
             </div>
 
             <div style="margin: 0 2em">
-                <i class="material-icons" style="font-size: 4em" color="primary">swap_horiz</i>
+                <span style="font-weight: bold; font-size: 4em" color="primary">⇆</span>
             </div>
 
             <div style="text-align: center">
-                <img src="{{account.profile_url}}" style="margin-right: 1em; max-width: 50px; max-height: 50px; border-radius: 25px" alt="">
+                <!--<img src="{{account.profile_url}}" style="margin-right: 1em; max-width: 50px; max-height: 50px; border-radius: 25px" alt="">-->
+                <img src="http://localhost:3000/assets/octoauth.png" style="margin-right: 1em; max-width: 50px; max-height: 50px; border-radius: 25px" alt="">
                 <p>
                     {{account.username}}
                 </p>
             </div>
         </div>
+        <p>
+            <strong>Description:</strong> {{application.description}}
+        </p>
 
-        <hr>
+        
 
-        <strong>Permissions required</strong>
-        <div>to be continued...</div>
+        <div style="margin: 2em 0">
+            <strong>Permissions required</strong>
 
-        <ul style="padding-left: 0; list-style-type: none;">
-            {% for scope in scopes %}
-            <li>
-                <label>
-                    <input type="checkbox" name="scope[{{scope.code}}]" onchange="onScopesChange(event)" checked>
-                    {{scope.description}}
-                </label>
-                
-            </li>
-            {% endfor %}
-        </ul>
-
-        <hr>
+            <ul style="margin-left: 3em; text-align: left; padding-left: 0; list-style-type: none;">
+                {% for scope in scopes %}
+                <li>
+                    <label>
+                        <input type="checkbox" name="scope[{{scope.code}}]" onchange="onScopesChange(event)" checked>
+                        {{scope.description}}
+                    </label>
+                    
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
 
         <div style="display: flex;">
             <!-- Accent-colored raised button -->

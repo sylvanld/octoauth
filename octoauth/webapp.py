@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 import octoauth.domain.accounts.api
 import octoauth.domain.oauth2.api
@@ -21,12 +22,22 @@ class OctoAuthASGI(FastAPI):
             docs_url="/api",
         )
         self.register_domains()
+        self.register_middlewares()
         self.register_error_handlers()
 
     def register_domains(self):
         self.include_router(octoauth.domain.accounts.api.router)
         self.include_router(octoauth.domain.oauth2.api.router)
         self.include_router(octoauth.views.app)
+
+    def register_middlewares(self):
+        self.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     def register_error_handlers(self):
         self.exception_handler(AuthenticationRequired)(authentication_required_exception_handler)
