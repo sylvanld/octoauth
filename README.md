@@ -4,6 +4,9 @@
 
 ## Contribute
 
+**Requires**
+- Python / PIP (recommended to use virtualenv)
+
 Install dependencies
 
 ```
