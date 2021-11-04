@@ -5,7 +5,7 @@
 ## Contribute
 
 **Requires**
-- Python / PIP (recommended to use virtualenv)
+- Python >= 3.8 / PIP (recommended to use virtualenv)
 
 Install dependencies
 
