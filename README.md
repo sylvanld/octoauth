@@ -6,6 +6,7 @@
 
 **Requires**
 - Python >= 3.8 / PIP (recommended to use virtualenv)
+- make
 
 Install dependencies
 
@@ -17,4 +18,10 @@ Run server in dev. mode using uvicorn (included in dependencies)
 
 ```
 uvicorn --reload --factory octoauth.webapp:OctoAuthASGI
+```
+
+Before publishing a merge request, please clean/format your code using
+
+```
+make format
 ```
