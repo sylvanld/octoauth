@@ -20,7 +20,7 @@ def dashboard():
 
 @router.get("/login", dependencies=[Depends(authentication_forbidden)])
 def display_login_form(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse("login.html.j2", {"request": request})
 
 
 @router.post("/login", dependencies=[Depends(authentication_forbidden)])

@@ -12,7 +12,7 @@ templates = Jinja2Templates("octoauth/views/templates")
 
 @router.get("/register")
 def display_registration_form(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse("register.html.j2", {"request": request})
 
 
 @router.post("/register")
