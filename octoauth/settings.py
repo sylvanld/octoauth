@@ -1,6 +1,14 @@
+import os
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import List
+
+
+def getenv(variable_name: str, default=None):
+    value = os.getenv(variable_name)
+    if value is None and default is None:
+        raise ValueError(f"Missing environment variable {variable_name}")
+    return value or default
 
 
 def file_content(filename) -> str:
@@ -41,7 +49,7 @@ DEVELOPMENT_SETTINGS = Settings(
         {"name": "groups", "description": "Manage groups and memberships."},
     ],
     DATABASE_URI="sqlite:///assets/database.sqlite",
-    DASHBOARD_URL="http://localhost:8080",
+    DASHBOARD_URL=getenv("DASHBOARD_URL"),
     ACCESS_TOKEN_EXPIRES=timedelta(minutes=15),
     ACCESS_TOKEN_PRIVATE_KEY=file_content("assets/private-key.pem"),
     ACCESS_TOKEN_PUBLIC_KEY=file_content("assets/public-key.pem"),

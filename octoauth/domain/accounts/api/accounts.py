@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends
 
 from octoauth.architecture.query import Filters
+from octoauth.domain.accounts.authenticate import authentication_required
 from octoauth.domain.accounts.dtos import AccountCreateDTO, AccountDetailsDTO, AccountSummaryDTO, AccountUpdateDTO
 from octoauth.domain.accounts.query import parse_accounts_query
 from octoauth.domain.accounts.services import AccountService
@@ -15,16 +16,17 @@ def search_accounts(filters: Filters = Depends(parse_accounts_query)):
     return AccountService.search(filters)
 
 
-@router.get("/accounts/{account_uid}", response_model=AccountDetailsDTO)
-def get_account_details(account_uid: str):
-    return AccountService.get_by_uid(account_uid)
-
-
 @router.get("/accounts/whoami", response_model=AccountDetailsDTO)
-def get_my_account_details(account_uid: str):
+def get_my_account_details():
     """
     Get current user's account details (authenticated by access token)
     """
+    account = AccountService.search([])[0]
+    return AccountService.get_by_uid(account.uid)
+
+
+@router.get("/accounts/{account_uid}", response_model=AccountDetailsDTO)
+def get_account_details(account_uid: str):
     return AccountService.get_by_uid(account_uid)
 
 
