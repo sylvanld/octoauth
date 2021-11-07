@@ -4,7 +4,7 @@ from typing import Iterable, List, Set
 from octoauth.architecture.database import use_database
 from octoauth.architecture.query import Filters
 from octoauth.architecture.security import generate_access_token
-from octoauth.domain.oauth2.database import Application, AuthorizationCode, Grant, Scope
+from octoauth.domain.oauth2.database import Application, AuthorizationCode, AuthorizedRedirectURI, Grant, Scope
 from octoauth.settings import SETTINGS
 
 from .dtos import (
@@ -12,6 +12,8 @@ from .dtos import (
     ApplicationReadDTO,
     ApplicationReadOnceDTO,
     ApplicationUpdateDTO,
+    RedirectURIEditDTO,
+    RedirectURIReadDTO,
     ScopeDTO,
     TokenGrantDTO,
     TokenRequestWithAuthorizationCodeDTO,
@@ -66,6 +68,31 @@ class ApplicationService:
         """
         application = Application.get_by_uid(application_uid)
         application.delete()
+
+    @staticmethod
+    @use_database
+    def get_authorized_redirect_uris(application_uid: str) -> List[RedirectURIReadDTO]:
+        authorized_uris = AuthorizedRedirectURI.query.filter_by(application_uid=application_uid).all()
+        return [RedirectURIReadDTO.from_orm(authorized_uri) for authorized_uri in authorized_uris]
+
+    @staticmethod
+    @use_database
+    def add_authorized_redirect_uri(application_uid, redirect_uri_edit_dto: RedirectURIEditDTO) -> RedirectURIReadDTO:
+        instance = AuthorizedRedirectURI.create(application_uid=application_uid, redirect_uri=redirect_uri_edit_dto.redirect_uri)
+        return RedirectURIReadDTO.from_orm(instance)
+
+    @staticmethod
+    @use_database
+    def update_authorized_redirect_uri(application_uid, redirect_uri_uid, redirect_uri_edit_dto: RedirectURIEditDTO) -> RedirectURIReadDTO:
+        instance = AuthorizedRedirectURI.find_one(uid=redirect_uri_uid, application_uid=application_uid)
+        instance.update(redirect_uri=redirect_uri_edit_dto.redirect_uri)
+        return RedirectURIReadDTO.from_orm(instance)
+    
+    @staticmethod
+    @use_database
+    def remove_authorized_redirect_uri(application_uid, redirect_uri_uid):
+        instance = AuthorizedRedirectURI.find_one(uid = redirect_uri_uid, application_uid = application_uid)
+        instance.delete()
 
 
 class ScopeService:

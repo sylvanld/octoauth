@@ -37,6 +37,15 @@ class ApplicationUpdateDTO(BaseDTO):
     icon_uri: str = None
 
 
+class RedirectURIEditDTO(BaseDTO):
+    redirect_uri: str
+
+
+class RedirectURIReadDTO(BaseDTO):
+    uid: str
+    redirect_uri: str
+
+
 class TokenGrantDTO(BaseDTO):
     access_token: str
     refresh_token: Optional[str]

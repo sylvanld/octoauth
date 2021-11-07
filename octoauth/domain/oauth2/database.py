@@ -24,6 +24,14 @@ class Application(DBModel):
     icon_uri = Column(String(200), nullable=True)
 
 
+class AuthorizedRedirectURI(DBModel):
+    __tablename__ = "authorized_redirect_uris"
+
+    uid = Column(String(36), primary_key=True, default=generate_uid)
+    application_uid = Column(String(36), ForeignKey("applications.uid"), nullable=False)
+    redirect_uri = Column(String(200), nullable=True)
+
+
 class Scope(DBModel):
     """
     ORM object that represents an oauth2 scope in the database.
