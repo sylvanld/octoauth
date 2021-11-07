@@ -1,5 +1,6 @@
 # ignore local playground
 snippets/
+.env.local
 
 # ignore python files
 .pytest_cache/
