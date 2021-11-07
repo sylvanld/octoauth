@@ -13,12 +13,9 @@ router = APIRouter()
 templates = Jinja2Templates("octoauth/views/templates")
 
 
-@router.get("/")
-def home(
-    request: Request,
-    account_read_dto: AccountSummaryDTO = Depends(authentication_required),
-):
-    return templates.TemplateResponse("home.html", {"request": request, "username": account_read_dto.username})
+@router.get("/", dependencies=[Depends(authentication_required)])
+def dashboard():
+    return RedirectResponse(SETTINGS.DASHBOARD_URL, 303)
 
 
 @router.get("/login", dependencies=[Depends(authentication_forbidden)])
@@ -32,13 +29,16 @@ def handle_login_form_submit(
     redirect: str = Query("/"),
     username: str = Form(...),
     password: str = Form(...),
+    platform: str = Form(None),
+    browser: str = Form(None)
 ):
     try:
+        ip_address = request.client[0]
         account_dto = AccountService.authenticate(username, password)
-        session_id = AccountService.create_session(account_dto)
+        session_id = AccountService.create_session(account_dto, ip_address, platform, browser)
     except AuthenticationError as error:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED) from error
+    
     response = RedirectResponse(redirect, 303)
     response.set_cookie(
         "session_id",
@@ -50,7 +50,11 @@ def handle_login_form_submit(
 
 
 @router.get("/logout")
-def handle_login_form_submit(redirect: str = "/login"):
+def handle_login_form_submit(request: Request, redirect: str = "/login"):
+    session_uid = request.cookies.get("session_id")
+    if session_uid:
+        AccountService.revoke_session(session_uid)
+    # once session is revoked, redirect to login page and clear cookie
     response = RedirectResponse(redirect, 303)
     response.set_cookie(
         "session_id",

@@ -1,5 +1,7 @@
 import os
 import uuid
+import requests
+
 from datetime import datetime, timedelta
 
 import jwt
@@ -66,3 +68,23 @@ def generate_refresh_token():
     Generate a refresh token that contains no other information.
     """
     return uuid.uuid4().hex + uuid.uuid4().hex
+
+
+def get_ip_info(ip_address) -> dict:
+    """
+    Get IP address info
+    """
+    info = dict(ip=ip_address)
+    
+    try:
+        response = requests.get(f'https://ipapi.co/{ip_address}/json/')
+        response_data = response.json()
+        info.update(
+            city=response_data["city"], 
+            country=response_data["country_name"]
+        )
+    except Exception:
+        # handle all exceptions as error here should never be blocking.
+        pass
+    
+    return info

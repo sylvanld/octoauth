@@ -30,6 +30,9 @@
             <legend>Confirm password</legend>
             <input type="password" id="confirmPassword" autocomplete="off" required>
         </fieldset>
+
+        <input type="hidden" name="browser">
+        <input type="hidden" name="platform">
         
         <p id="errorMessage" style="color: red"></p>
 
@@ -47,6 +50,10 @@
 {% endblock content %}
 
 {% block scripts %}
+<script>
+{% include 'layout/clientinfo.js' %}
+</script>
+
 <script>
     (()=>{
         const $ = (s)=>document.querySelector("#" + s);

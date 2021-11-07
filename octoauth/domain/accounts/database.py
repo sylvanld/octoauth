@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Table
 from sqlalchemy.orm import relationship
 
@@ -27,7 +28,13 @@ class SessionCookie(DBModel):
 
     uid = Column(String(36), primary_key=True, default=generate_uid)
     account_uid = Column(String(36), ForeignKey("accounts.uid"), nullable=False, primary_key=True)
+    issued_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=False)
+    ip_address = Column(String(15), nullable=False)
+    country = Column(String(20), nullable=True)
+    city = Column(String(30), nullable=True)
+    browser = Column(String(20), nullable=True)
+    platform = Column(String(20), nullable=True)
 
 
 class Group(DBModel):

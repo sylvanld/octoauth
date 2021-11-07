@@ -3,7 +3,7 @@ from typing import List
 
 from octoauth.architecture.database import use_database
 from octoauth.architecture.query import Filters
-from octoauth.architecture.security import hash_password, verify_password
+from octoauth.architecture.security import get_ip_info, hash_password, verify_password
 from octoauth.exceptions import AuthenticationError
 from octoauth.settings import SETTINGS
 
@@ -17,6 +17,7 @@ from .dtos import (
     GroupDetailsDTO,
     GroupSummaryDTO,
     GroupUpdateDTO,
+    SessionDTO,
 )
 from .events import ACCOUNT_CREATED, ACCOUNT_DELETED, event_bus
 
@@ -83,16 +84,38 @@ class AccountService:
 
     @staticmethod
     @use_database
-    def create_session(account_dto: AccountSummaryDTO) -> str:
+    def create_session(account_dto: AccountSummaryDTO, ip_address: str = None, platform: str = None, browser: str = None) -> str:
         """
         Create a session and returns its UID
         """
+        # abort ip address info if not IPV4 address
+        ip_info = {}
+        if ip_address and len(ip_address) < 15:
+            ip_info = get_ip_info(ip_address)
+        
         session = SessionCookie.create(
             account_uid=account_dto.uid,
+            ip_address=ip_info.get('ip'),
+            country=ip_info.get('country'),
+            city=ip_info.get('city'),
+            platform=platform,
+            browser=browser,
             expires_at=datetime.utcnow() + SETTINGS.SESSION_COOKIE_LIFETIME,
         )
 
         return session.uid
+
+    @staticmethod
+    @use_database
+    def get_sessions(account_uid) -> List[SessionCookie]:
+        session_cookies = SessionCookie.query.filter_by(account_uid=account_uid).all()
+        return [SessionDTO.from_orm(session_cookie) for session_cookie in session_cookies]
+
+    @staticmethod
+    @use_database
+    def revoke_session(session_uid):
+        session = SessionCookie.get_by_uid(session_uid)
+        session.delete()
 
     @staticmethod
     @use_database

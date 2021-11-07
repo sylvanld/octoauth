@@ -4,6 +4,7 @@ Jinja2==3.0.2
 PyJWT==2.3.0
 pydantic==1.8.2
 python-multipart==0.0.5
+requests==2.26.0
 SQLAlchemy==1.4.26
 starlette==0.16.0
 uvicorn==0.15.0

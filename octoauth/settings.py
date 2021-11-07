@@ -19,6 +19,7 @@ class Settings:
     ACCESS_TOKEN_PRIVATE_KEY: str
     ACCESS_TOKEN_PUBLIC_KEY: str
 
+    DASHBOARD_URL: str
     DATABASE_URI: str
 
     MAILING_ENABLED: bool
@@ -40,6 +41,7 @@ DEVELOPMENT_SETTINGS = Settings(
         {"name": "groups", "description": "Manage groups and memberships."},
     ],
     DATABASE_URI="sqlite:///assets/database.sqlite",
+    DASHBOARD_URL="http://localhost:8080",
     ACCESS_TOKEN_EXPIRES=timedelta(minutes=15),
     ACCESS_TOKEN_PRIVATE_KEY=file_content("assets/private-key.pem"),
     ACCESS_TOKEN_PUBLIC_KEY=file_content("assets/public-key.pem"),

@@ -28,6 +28,9 @@
             <legend>Enter your password</legend>
             <input name="password" id="passwordInput" autocomplete="off" required>
         </fieldset>
+
+        <input type="hidden" name="browser">
+        <input type="hidden" name="platform">
         
         <p id="errorMessage" style="color: red"></p>
 
@@ -46,6 +49,10 @@
 {% endblock content %}
 
 {% block scripts %}
+<script>
+{% include 'layout/clientinfo.js' %}
+</script>
+
 <script>
     (()=>{
         const loginForm = $("loginForm");
@@ -133,6 +140,7 @@
         $('buttonChangeAccount').addEventListener('click', clearAccount);
 
         clearAccount();
+        setClientInfo();
     })()
 </script>
 {% endblock scripts %}

@@ -1,13 +1,21 @@
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel
 
 from octoauth.architecture.types import URL, Email, StringEnum
+from octoauth.architecture.encoders import BaseDTO
 
 
-class BaseDTO(BaseModel):
-    class Config:
-        orm_mode = True
+class SessionDTO(BaseDTO):
+    uid: str
+    expires_at: datetime
+    issued_at: datetime
+    ip_address: str
+    country: Optional[str]
+    city: Optional[str]
+    browser: Optional[str]
+    platform: Optional[str]
 
 
 class GroupSummaryDTO(BaseDTO):
