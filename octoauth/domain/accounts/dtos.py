@@ -1,10 +1,8 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
-
-from octoauth.architecture.types import URL, Email, StringEnum
 from octoauth.architecture.encoders import BaseDTO
+from octoauth.architecture.types import URL, Email, StringEnum
 
 
 class SessionDTO(BaseDTO):

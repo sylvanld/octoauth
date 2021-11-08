@@ -5,7 +5,11 @@ from fastapi.responses import RedirectResponse
 
 from octoauth.domain.accounts.dtos import AccountSummaryDTO
 from octoauth.domain.accounts.services import AccountService
-from octoauth.exceptions import AuthenticationError, AuthenticationForbidden, AuthenticationRequired
+from octoauth.exceptions import (
+    AuthenticationError,
+    AuthenticationForbidden,
+    AuthenticationRequired,
+)
 
 
 def authentication_required(request: Request) -> AccountSummaryDTO:

@@ -4,61 +4,7 @@ from octoauth.domain.oauth2.dtos import (
     AuthorizeQueryParams,
     ChallengeMethod,
     ResponseType,
-    TokenRequestDTO,
-    TokenRequestWithAuthorizationCodeDTO,
-    TokenRequestWithClientCredentialsDTO,
-    TokenRequestWithRefreshTokenDTO,
 )
-
-
-class TokenRequestParser:
-    """
-    Helper class that provides methods to parse token requests and ensure it is complete.
-    """
-
-    @staticmethod
-    def parse_authorization_code(request: TokenRequestDTO) -> TokenRequestWithAuthorizationCodeDTO:
-        """
-        Ensure request contains all params required in authorizaton_code request.
-        """
-        # structural checks
-        if request.code is None:
-            raise ValueError("Missing mandatory body param for flow 'authorization_code': 'code'.")
-        elif request.redirect_uri is None:
-            raise ValueError("Missing mandatory body param for flow 'authorization_code': 'redirect_uri'.")
-        elif request.client_secret is None and request.code_verifier is None:
-            raise ValueError(
-                "Missing PKCE body param for flow 'authorization_code' without 'client_secret': 'code_verifier'"
-            )
-
-        return TokenRequestWithAuthorizationCodeDTO(
-            client_id=request.client_id,
-            client_secret=request.client_secret,
-            code=request.code,
-            redirect_uri=request.redirect_uri,
-            code_verifier=request.code_verifier,
-        )
-
-    @staticmethod
-    def parse_client_credentials(request: TokenRequestDTO) -> TokenRequestWithClientCredentialsDTO:
-        """
-        Ensure request contains all params required in client_credentials request.
-        """
-        return TokenRequestWithClientCredentialsDTO(
-            client_id=request.client_id, client_secret=request.client_secret, scope=request.scope
-        )
-
-    @staticmethod
-    def parse_refresh_token(request: TokenRequestDTO) -> TokenRequestWithRefreshTokenDTO:
-        """
-        Ensure request contains all params required in refresh_token request.
-        """
-        return TokenRequestWithRefreshTokenDTO(
-            client_id=request.client_id,
-            client_secret=request.client_secret,
-            refresh_token=request.refresh_token,
-            scope=request.scope,
-        )
 
 
 def parse_authorization_params(

@@ -1,11 +1,10 @@
 from typing import Optional
 
 from fastapi import APIRouter, Form
+from fastapi.exceptions import HTTPException
 
 from octoauth.domain.oauth2.dtos import GrantType, TokenGrantDTO, TokenRequestDTO
-from octoauth.domain.oauth2.parsers import TokenRequestParser
 from octoauth.domain.oauth2.services import TokenService
-from octoauth.exceptions import UIException
 
 router = APIRouter()
 
@@ -19,6 +18,9 @@ def get_token(
     client_id: str = Form(
         None,
         description="**Mandatory in 'authorization_code' flow if basic auth is not passed**. IE suitable for used case where public client use code flow with PKCE.",
+    ),
+    client_secret: str = Form(
+        None, description="**Mandatory, except for implicit grant flow, or authorization_code using PKCE.**"
     ),
     scope: Optional[str] = Form(
         None,
@@ -44,6 +46,7 @@ def get_token(
     request_dto = TokenRequestDTO(
         grant_type=grant_type,
         client_id=client_id,
+        client_secret=client_secret,
         scope=scope,
         code=code,
         refresh_token=refresh_token,
@@ -52,18 +55,15 @@ def get_token(
     )
 
     if grant_type == GrantType.AUTHORIZATION_CODE:
-        request_with_code = TokenRequestParser.parse_authorization_code(request_dto)
-        token_grant = TokenService.generate_token_from_authorization_code(request_with_code)
+        token_grant = TokenService.generate_token_from_authorization_code(request_dto)
     elif grant_type == GrantType.CLIENT_CREDENTIALS:
-        request_with_client_credentials = TokenRequestParser.parse_client_credentials(request_dto)
-        token_grant = TokenService.generate_token_from_client_credentials(request_with_client_credentials)
+        token_grant = TokenService.generate_token_from_client_credentials(request_dto)
     elif grant_type == GrantType.REFRESH_TOKEN:
-        request_with_refresh_token = TokenRequestParser.parse_refresh_token(request_dto)
-        token_grant = TokenService.generate_token_from_refresh_token(request_with_refresh_token)
+        token_grant = TokenService.generate_token_from_refresh_token(request_dto)
     else:
-        raise UIException(
-            message=f"Unsupported value for parameter 'grant_type': {grant_type}",
-            details="Supported values: token, code",
+        raise HTTPException(
+            status_code=400,
+            details=f"Unsupported value for parameter 'grant_type': {grant_type}. Supported values: token, code",
         )
 
     return token_grant

@@ -1,12 +1,19 @@
 from datetime import datetime
-from typing import Iterable, List, Set
+from typing import List, Set
 
 from octoauth.architecture.database import use_database
+from octoauth.architecture.events import publish_event
 from octoauth.architecture.query import Filters
 from octoauth.architecture.security import generate_access_token
-from octoauth.domain.oauth2.database import Application, AuthorizationCode, AuthorizedRedirectURI, Grant, Scope
 from octoauth.settings import SETTINGS
 
+from .database import (
+    Application,
+    AuthorizationCode,
+    AuthorizedRedirectURI,
+    Grant,
+    Scope,
+)
 from .dtos import (
     ApplicationCreateDTO,
     ApplicationReadDTO,
@@ -16,11 +23,11 @@ from .dtos import (
     RedirectURIReadDTO,
     ScopeDTO,
     TokenGrantDTO,
-    TokenRequestWithAuthorizationCodeDTO,
-    TokenRequestWithClientCredentialsDTO,
+    TokenRequestDTO,
     TokenRequestWithImplicitGrantsDTO,
-    TokenRequestWithRefreshTokenDTO,
 )
+from .events import APPLICATION_CREATED, APPLICATION_DELETED, SCOPE_CREATED
+from .validators import TokenRequestValidator
 
 
 class ApplicationService:
@@ -43,12 +50,14 @@ class ApplicationService:
 
     @classmethod
     @use_database
+    @publish_event(APPLICATION_CREATED)
     def create(cls, application_create: ApplicationCreateDTO) -> ApplicationReadDTO:
         """
         Declare an oauth2 client application.
         """
         application = Application.create(**application_create.dict())
-        return ApplicationReadOnceDTO.from_orm(application)
+        application_dto = ApplicationReadOnceDTO.from_orm(application)
+        return application_dto
 
     @classmethod
     @use_database
@@ -62,11 +71,13 @@ class ApplicationService:
 
     @classmethod
     @use_database
+    @publish_event(APPLICATION_DELETED)
     def delete(cls, application_uid: str) -> ApplicationReadDTO:
         """
         Delete an oauth2 client application details.
         """
         application = Application.get_by_uid(application_uid)
+        application_dto = ApplicationReadOnceDTO.from_orm(application)
         application.delete()
 
     @staticmethod
@@ -78,26 +89,31 @@ class ApplicationService:
     @staticmethod
     @use_database
     def add_authorized_redirect_uri(application_uid, redirect_uri_edit_dto: RedirectURIEditDTO) -> RedirectURIReadDTO:
-        instance = AuthorizedRedirectURI.create(application_uid=application_uid, redirect_uri=redirect_uri_edit_dto.redirect_uri)
+        instance = AuthorizedRedirectURI.create(
+            application_uid=application_uid, redirect_uri=redirect_uri_edit_dto.redirect_uri
+        )
         return RedirectURIReadDTO.from_orm(instance)
 
     @staticmethod
     @use_database
-    def update_authorized_redirect_uri(application_uid, redirect_uri_uid, redirect_uri_edit_dto: RedirectURIEditDTO) -> RedirectURIReadDTO:
+    def update_authorized_redirect_uri(
+        application_uid, redirect_uri_uid, redirect_uri_edit_dto: RedirectURIEditDTO
+    ) -> RedirectURIReadDTO:
         instance = AuthorizedRedirectURI.find_one(uid=redirect_uri_uid, application_uid=application_uid)
         instance.update(redirect_uri=redirect_uri_edit_dto.redirect_uri)
         return RedirectURIReadDTO.from_orm(instance)
-    
+
     @staticmethod
     @use_database
     def remove_authorized_redirect_uri(application_uid, redirect_uri_uid):
-        instance = AuthorizedRedirectURI.find_one(uid = redirect_uri_uid, application_uid = application_uid)
+        instance = AuthorizedRedirectURI.find_one(uid=redirect_uri_uid, application_uid=application_uid)
         instance.delete()
 
 
 class ScopeService:
     @staticmethod
     @use_database
+    @publish_event(SCOPE_CREATED)
     def create(scope_dto: ScopeDTO):
         scope = Scope.create(**scope_dto.dict())
         return ScopeDTO.from_orm(scope)
@@ -136,11 +152,8 @@ class ScopeService:
 
         # create missing client grant
         for scope_code in new_granted_scopes.difference(old_granted_scopes):
-            Grant.create(
-                account_uid=account_uid,
-                client_id=client_id,
-                scope_code=scope_code
-            )
+            Grant.create(account_uid=account_uid, client_id=client_id, scope_code=scope_code)
+
 
 class AuthorizationService:
     @classmethod
@@ -164,16 +177,15 @@ class AuthorizationService:
         if not scope:
             raise ValueError("Scope argument is mandatory to generate client_id")
 
-        ScopeService.add_client_granted_scopes(account_uid, client_id, scope.split(','))
+        ScopeService.add_client_granted_scopes(account_uid, client_id, scope.split(","))
 
         application_grants = Grant.query.filter(
-            Grant.account_uid == account_uid,
-            Grant.client_id == client_id,
-            Grant.scope_code.in_(scope.split(','))
+            Grant.account_uid == account_uid, Grant.client_id == client_id, Grant.scope_code.in_(scope.split(","))
         ).all()
 
         authorization_code = AuthorizationCode.create(
             expires=datetime.utcnow() + SETTINGS.AUTHORIZATION_CODE_EXPIRES,
+            account_uid=account_uid,
             code_challenge=code_challenge,
             code_challenge_method=code_challenge_method,
             grants=application_grants,
@@ -200,19 +212,40 @@ class TokenService:
     def generate_token_from_implicit_grant(request: TokenRequestWithImplicitGrantsDTO):
         expires = datetime.utcnow() + SETTINGS.ACCESS_TOKEN_EXPIRES
         return TokenGrantDTO(
-            access_token=generate_access_token(account_uid=request.account_uid, client_id=request.client_id, expires=SETTINGS.ACCESS_TOKEN_EXPIRES, scope=request.scope),
+            access_token=generate_access_token(
+                account_uid=request.account_uid,
+                client_id=request.client_id,
+                expires=SETTINGS.ACCESS_TOKEN_EXPIRES,
+                scope=request.scope,
+            ),
             expires=expires.timestamp(),
-            token_type="Bearer"
+            token_type="Bearer",
         )
-    
-    @staticmethod
-    def generate_token_from_authorization_code(request: TokenRequestWithAuthorizationCodeDTO):
-        ...
 
     @staticmethod
-    def generate_token_from_client_credentials(request: TokenRequestWithClientCredentialsDTO):
-        ...
+    def generate_token_from_authorization_code(request: TokenRequestDTO):
+        TokenRequestValidator.validate_authorization_code(request)
+
+        # retrieve account_uid from authorization_code
+        authorization_code = AuthorizationCode.find_one(code=request.code)
+        print(authorization_code.grants)
+
+        expires = datetime.utcnow() + SETTINGS.ACCESS_TOKEN_EXPIRES
+        return TokenGrantDTO(
+            access_token=generate_access_token(
+                account_uid=authorization_code.account_uid,
+                client_id=request.client_id,
+                expires=SETTINGS.ACCESS_TOKEN_EXPIRES,
+                scope=request.scope,
+            ),
+            expires=expires.timestamp(),
+            token_type="Bearer",
+        )
 
     @staticmethod
-    def generate_token_from_refresh_token(request: TokenRequestWithRefreshTokenDTO):
-        ...
+    def generate_token_from_client_credentials(request: TokenRequestDTO):
+        TokenRequestValidator.validate_client_credentials(request)
+
+    @staticmethod
+    def generate_token_from_refresh_token(request: TokenRequestDTO):
+        TokenRequestValidator.validate_refresh_token(request)

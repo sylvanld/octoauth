@@ -1,6 +1,9 @@
 [tool.black]
 line-length = 119
 
+[tool.isort]
+profile = "black"
+
 [tool.pylint.messages_control]
 disable = "bad-continuation,too-few-public-methods"
 max-line-length=119

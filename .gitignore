@@ -7,6 +7,7 @@ snippets/
 __pycache__/
 .venv/
 
-# ignore assets
+# ignore generated data
 assets/
 *.sqlite
+*.log

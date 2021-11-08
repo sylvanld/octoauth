@@ -46,13 +46,18 @@ def get_oauth2_client_application(application_uid: str):
 def get_application_authorized_redirect_uris(application_uid: str):
     return ApplicationService.get_authorized_redirect_uris(application_uid)
 
+
 @router.post("/applications/{application_uid}/redirect_uris", response_model=RedirectURIReadDTO, status_code=201)
 def add_authorized_redirect_uri(application_uid: str, redirect_uri_edit_dto: RedirectURIEditDTO):
     return ApplicationService.add_authorized_redirect_uri(application_uid, redirect_uri_edit_dto)
 
+
 @router.put("/applications/{application_uid}/redirect_uris/{redirect_uri_uid}", response_model=RedirectURIReadDTO)
-def update_authorized_redirect_uri(application_uid: str, redirect_uri_uid: str, redirect_uri_edit_dto: RedirectURIEditDTO):
+def update_authorized_redirect_uri(
+    application_uid: str, redirect_uri_uid: str, redirect_uri_edit_dto: RedirectURIEditDTO
+):
     return ApplicationService.update_authorized_redirect_uri(application_uid, redirect_uri_uid, redirect_uri_edit_dto)
+
 
 @router.delete("/applications/{application_uid}/redirect_uris/{redirect_uri_uid}", status_code=202)
 def remove_authorized_redirect_uri(application_uid: str, redirect_uri_uid: str):

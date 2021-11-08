@@ -1,10 +1,9 @@
 import os
 import uuid
-import requests
-
 from datetime import datetime, timedelta
 
 import jwt
+import requests
 from cryptography.exceptions import InvalidKey
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
@@ -75,16 +74,13 @@ def get_ip_info(ip_address) -> dict:
     Get IP address info
     """
     info = dict(ip=ip_address)
-    
+
     try:
-        response = requests.get(f'https://ipapi.co/{ip_address}/json/')
+        response = requests.get(f"https://ipapi.co/{ip_address}/json/")
         response_data = response.json()
-        info.update(
-            city=response_data["city"], 
-            country=response_data["country_name"]
-        )
+        info.update(city=response_data["city"], country=response_data["country_name"])
     except Exception:
         # handle all exceptions as error here should never be blocking.
         pass
-    
+
     return info

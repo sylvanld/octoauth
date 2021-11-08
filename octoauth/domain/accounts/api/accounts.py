@@ -3,8 +3,12 @@ from typing import List
 from fastapi import APIRouter, Depends
 
 from octoauth.architecture.query import Filters
-from octoauth.domain.accounts.authenticate import authentication_required
-from octoauth.domain.accounts.dtos import AccountCreateDTO, AccountDetailsDTO, AccountSummaryDTO, AccountUpdateDTO
+from octoauth.domain.accounts.dtos import (
+    AccountCreateDTO,
+    AccountDetailsDTO,
+    AccountSummaryDTO,
+    AccountUpdateDTO,
+)
 from octoauth.domain.accounts.query import parse_accounts_query
 from octoauth.domain.accounts.services import AccountService
 

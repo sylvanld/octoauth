@@ -94,6 +94,7 @@ class AuthorizationCode(DBModel):
     __tablename__ = "authorization_codes"
 
     code = Column(String(36), primary_key=True, default=generate_uid)
+    account_uid = Column(String(36), ForeignKey("accounts.uid"), nullable=False)
     expires = Column(DateTime, nullable=False)
 
     code_challenge = Column(String(64), nullable=True)

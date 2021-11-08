@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 
 from octoauth.architecture.database import use_database
+from octoauth.architecture.events import publish_event
 from octoauth.architecture.query import Filters
 from octoauth.architecture.security import get_ip_info, hash_password, verify_password
 from octoauth.exceptions import AuthenticationError
@@ -19,7 +20,7 @@ from .dtos import (
     GroupUpdateDTO,
     SessionDTO,
 )
-from .events import ACCOUNT_CREATED, ACCOUNT_DELETED, event_bus
+from .events import ACCOUNT_CREATED, ACCOUNT_DELETED
 
 
 class AccountService:
@@ -37,6 +38,7 @@ class AccountService:
 
     @staticmethod
     @use_database
+    @publish_event(ACCOUNT_CREATED)
     def create(account_create_dto: AccountCreateDTO) -> AccountSummaryDTO:
         account_data = account_create_dto.dict()
 
@@ -45,10 +47,7 @@ class AccountService:
         account_data["password_hash"] = hash_password(password)
 
         account = Account.create(**account_data)
-        account_dto = AccountSummaryDTO.from_orm(account)
-
-        event_bus.publish(ACCOUNT_CREATED, account_dto)
-        return account_dto
+        return AccountSummaryDTO.from_orm(account)
 
     @staticmethod
     @use_database
@@ -84,7 +83,9 @@ class AccountService:
 
     @staticmethod
     @use_database
-    def create_session(account_dto: AccountSummaryDTO, ip_address: str = None, platform: str = None, browser: str = None) -> str:
+    def create_session(
+        account_dto: AccountSummaryDTO, ip_address: str = None, platform: str = None, browser: str = None
+    ) -> str:
         """
         Create a session and returns its UID
         """
@@ -92,12 +93,12 @@ class AccountService:
         ip_info = {}
         if ip_address and len(ip_address) < 15:
             ip_info = get_ip_info(ip_address)
-        
+
         session = SessionCookie.create(
             account_uid=account_dto.uid,
-            ip_address=ip_info.get('ip'),
-            country=ip_info.get('country'),
-            city=ip_info.get('city'),
+            ip_address=ip_info.get("ip"),
+            country=ip_info.get("country"),
+            city=ip_info.get("city"),
             platform=platform,
             browser=browser,
             expires_at=datetime.utcnow() + SETTINGS.SESSION_COOKIE_LIFETIME,
@@ -133,12 +134,12 @@ class AccountService:
 
     @staticmethod
     @use_database
+    @publish_event(ACCOUNT_DELETED)
     def delete(account_uid: int):
         account = Account.get_by_uid(account_uid)
         account_dto = AccountSummaryDTO.from_orm(account)
         account.delete()
-
-        event_bus.publish(ACCOUNT_DELETED, account_dto)
+        return account_dto
 
 
 class GroupService:

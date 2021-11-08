@@ -3,8 +3,10 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from octoauth.domain.accounts.authenticate import authentication_forbidden, authentication_required
-from octoauth.domain.accounts.dtos import AccountSummaryDTO
+from octoauth.domain.accounts.authenticate import (
+    authentication_forbidden,
+    authentication_required,
+)
 from octoauth.domain.accounts.services import AccountService
 from octoauth.exceptions import AuthenticationError
 from octoauth.settings import SETTINGS
@@ -30,7 +32,7 @@ def handle_login_form_submit(
     username: str = Form(...),
     password: str = Form(...),
     platform: str = Form(None),
-    browser: str = Form(None)
+    browser: str = Form(None),
 ):
     try:
         ip_address = request.client[0]
@@ -38,7 +40,7 @@ def handle_login_form_submit(
         session_id = AccountService.create_session(account_dto, ip_address, platform, browser)
     except AuthenticationError as error:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED) from error
-    
+
     response = RedirectResponse(redirect, 303)
     response.set_cookie(
         "session_id",

@@ -1,14 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from pydantic import BaseModel
-
+from octoauth.architecture.encoders import BaseDTO
 from octoauth.architecture.types import URL, StringEnum
-
-
-class BaseDTO(BaseModel):
-    class Config:
-        orm_mode = True
 
 
 class ApplicationReadDTO(BaseDTO):

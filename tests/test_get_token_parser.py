@@ -1,6 +1,9 @@
 import pytest
 
-from octoauth.domain.oauth2.dtos import TokenRequestDTO, TokenRequestWithAuthorizationCodeDTO
+from octoauth.domain.oauth2.dtos import (
+    TokenRequestDTO,
+    TokenRequestWithAuthorizationCodeDTO,
+)
 from octoauth.domain.oauth2.parsers import TokenRequestParser
 
 
