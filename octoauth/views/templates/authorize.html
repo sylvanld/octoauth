@@ -49,7 +49,7 @@
                 {% for scope in scopes %}
                 <li>
                     <label>
-                        <input type="checkbox" name="scope[{{scope.code}}]" onchange="onScopesChange(event)" checked>
+                        <input type="checkbox" name="scopes" value="{{scope.code}}" checked>
                         {{scope.description}}
                     </label>
                     

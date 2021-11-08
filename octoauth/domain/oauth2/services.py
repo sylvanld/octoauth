@@ -5,6 +5,8 @@ from octoauth.architecture.database import use_database
 from octoauth.architecture.events import publish_event
 from octoauth.architecture.query import Filters
 from octoauth.architecture.security import generate_access_token
+from octoauth.domain.oauth2.exceptions import AuthenticationError, ScopesNotGrantedError
+from octoauth.exceptions import ObjectNotFoundException
 from octoauth.settings import SETTINGS
 
 from .database import (
@@ -122,7 +124,7 @@ class ScopeService:
     @use_database
     def get_scopes_from_string(scope: str) -> List[ScopeDTO]:
         if not scope:
-            raise ValueError("ScopeService.get_scopes_from_string can't parse empty scope")
+            return []
 
         # scope is for example: account:read,account:write
         scope_codes = set(scope.split(","))
@@ -162,7 +164,7 @@ class AuthorizationService:
         cls,
         account_uid: str,
         client_id: str,
-        scope: str,
+        scopes: str = None,
         code_challenge: str = None,
         code_challenge_method: str = None,
     ) -> str:
@@ -174,18 +176,16 @@ class AuthorizationService:
                 "In order to use PKCE, you must provide both 'code_challenge' and 'code_challenge_method' parameters"
             )
 
-        if not scope:
-            raise ValueError("Scope argument is mandatory to generate client_id")
-
-        ScopeService.add_client_granted_scopes(account_uid, client_id, scope.split(","))
+        ScopeService.add_client_granted_scopes(account_uid, client_id, scopes)
 
         application_grants = Grant.query.filter(
-            Grant.account_uid == account_uid, Grant.client_id == client_id, Grant.scope_code.in_(scope.split(","))
+            Grant.account_uid == account_uid, Grant.client_id == client_id, Grant.scope_code.in_(scopes)
         ).all()
 
         authorization_code = AuthorizationCode.create(
             expires=datetime.utcnow() + SETTINGS.AUTHORIZATION_CODE_EXPIRES,
             account_uid=account_uid,
+            client_id=client_id,
             code_challenge=code_challenge,
             code_challenge_method=code_challenge_method,
             grants=application_grants,
@@ -209,6 +209,7 @@ class AuthorizationService:
 
 class TokenService:
     @staticmethod
+    @use_database
     def generate_token_from_implicit_grant(request: TokenRequestWithImplicitGrantsDTO):
         expires = datetime.utcnow() + SETTINGS.ACCESS_TOKEN_EXPIRES
         return TokenGrantDTO(
@@ -223,12 +224,34 @@ class TokenService:
         )
 
     @staticmethod
+    @use_database
     def generate_token_from_authorization_code(request: TokenRequestDTO):
         TokenRequestValidator.validate_authorization_code(request)
 
         # retrieve account_uid from authorization_code
-        authorization_code = AuthorizationCode.find_one(code=request.code)
-        print(authorization_code.grants)
+        try:
+            authorization_code = AuthorizationCode.find_one(code=request.code)
+        except ObjectNotFoundException:
+            raise AuthenticationError("Authorization code does not exists or is expired")
+        if authorization_code.expires < datetime.utcnow():
+            authorization_code.delete()
+            raise AuthenticationError("Authorization code has expired")
+
+        # if client secret is provided, ensure it is valid
+        application = Application.find_one(client_id=authorization_code.client_id)
+        if request.client_secret and application.client_secret != request.client_secret:
+            raise AuthenticationError(f"Invalid client secret for client {application.client_id}")
+
+        # retrieve grants from authorization_code
+        granted_scopes = set([grant.scope_code for grant in authorization_code.grants])
+
+        # ensure all required scopes have been granted to this authorization code
+        required_scopes = set(request.scope.split(",") if request.scope else [])
+        difference = required_scopes.difference(granted_scopes)
+        if len(difference) > 0:
+            raise ScopesNotGrantedError(
+                "The following scopes have not been granted by end-user: %s" % ", ".join(difference)
+            )
 
         expires = datetime.utcnow() + SETTINGS.ACCESS_TOKEN_EXPIRES
         return TokenGrantDTO(
@@ -243,9 +266,11 @@ class TokenService:
         )
 
     @staticmethod
+    @use_database
     def generate_token_from_client_credentials(request: TokenRequestDTO):
         TokenRequestValidator.validate_client_credentials(request)
 
     @staticmethod
+    @use_database
     def generate_token_from_refresh_token(request: TokenRequestDTO):
         TokenRequestValidator.validate_refresh_token(request)

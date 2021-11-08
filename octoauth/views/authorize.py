@@ -1,6 +1,7 @@
+from typing import List
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi import APIRouter, Depends, Form, Query, Request, status
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -45,7 +46,9 @@ def display_authorization_form(
 
         # submit without displaying login screen if authorization have been granted previously
         if required_scopes.issubset(already_granted_scopes):
-            return submit_authorization_form(authorization_params, account_dto)
+            return submit_authorization_form(
+                scopes=required_scopes, authorization_params=authorization_params, account_dto=account_dto
+            )
 
     return templates.TemplateResponse(
         "authorize.html",
@@ -60,6 +63,7 @@ def display_authorization_form(
 
 @router.post("/authorize")
 def submit_authorization_form(
+    scopes: List[str] = Form(...),
     authorization_params: AuthorizeQueryParams = Depends(parse_authorization_params),
     account_dto: AccountSummaryDTO = Depends(authentication_required),
 ):
@@ -71,7 +75,7 @@ def submit_authorization_form(
         authorization_code = AuthorizationService.generate_authorization_code(
             account_uid=account_dto.uid,
             client_id=authorization_params.client_id,
-            scope=authorization_params.scope,
+            scopes=scopes,
             code_challenge=authorization_params.code_challenge,
             code_challenge_method=authorization_params.code_challenge_method,
         )

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Form
 from fastapi.exceptions import HTTPException
 
 from octoauth.domain.oauth2.dtos import GrantType, TokenGrantDTO, TokenRequestDTO
+from octoauth.domain.oauth2.exceptions import AuthenticationError, ScopesNotGrantedError
 from octoauth.domain.oauth2.services import TokenService
 
 router = APIRouter()
@@ -55,7 +56,12 @@ def get_token(
     )
 
     if grant_type == GrantType.AUTHORIZATION_CODE:
-        token_grant = TokenService.generate_token_from_authorization_code(request_dto)
+        try:
+            token_grant = TokenService.generate_token_from_authorization_code(request_dto)
+        except AuthenticationError as error:
+            raise HTTPException(status_code=401, detail=str(error))
+        except ScopesNotGrantedError as error:
+            raise HTTPException(status_code=403, detail=str(error))
     elif grant_type == GrantType.CLIENT_CREDENTIALS:
         token_grant = TokenService.generate_token_from_client_credentials(request_dto)
     elif grant_type == GrantType.REFRESH_TOKEN:
