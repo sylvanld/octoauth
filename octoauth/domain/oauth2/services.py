@@ -6,6 +6,7 @@ from octoauth.architecture.events import publish_event
 from octoauth.architecture.query import Filters
 from octoauth.architecture.security import generate_access_token
 from octoauth.domain.oauth2.exceptions import AuthenticationError, ScopesNotGrantedError
+from octoauth.domain.oauth2.pkce import code_verifier_to_challenge
 from octoauth.exceptions import ObjectNotFoundException
 from octoauth.settings import SETTINGS
 
@@ -242,6 +243,16 @@ class TokenService:
         if request.client_secret and application.client_secret != request.client_secret:
             raise AuthenticationError(f"Invalid client secret for client {application.client_id}")
 
+        # if authorization code was generated with PKCE, code_verifier is mandatory
+        if authorization_code.code_challenge:
+            if request.code_verifier is None:
+                raise AuthenticationError(
+                    "Authorization code has been requested with PKCE, code_verifier is mandatory"
+                )
+
+            if code_verifier_to_challenge(request.code_verifier) != authorization_code.code_challenge:
+                raise AuthenticationError("Code verifier does not match code challenge")
+
         # retrieve grants from authorization_code
         granted_scopes = set([grant.scope_code for grant in authorization_code.grants])
 
@@ -253,14 +264,17 @@ class TokenService:
                 "The following scopes have not been granted by end-user: %s" % ", ".join(difference)
             )
 
+        token_scopes = required_scopes or granted_scopes
+
         expires = datetime.utcnow() + SETTINGS.ACCESS_TOKEN_EXPIRES
         return TokenGrantDTO(
             access_token=generate_access_token(
                 account_uid=authorization_code.account_uid,
                 client_id=request.client_id,
                 expires=SETTINGS.ACCESS_TOKEN_EXPIRES,
-                scope=request.scope,
+                scope=",".join(token_scopes),
             ),
+            scopes=token_scopes,
             expires=expires.timestamp(),
             token_type="Bearer",
         )

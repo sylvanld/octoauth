@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
 from octoauth.architecture.encoders import BaseDTO
 from octoauth.architecture.types import URL, StringEnum
@@ -45,6 +45,7 @@ class TokenGrantDTO(BaseDTO):
     refresh_token: Optional[str]
     expires: int
     token_type: str
+    scopes: List[str] = []
 
 
 class ScopeDTO(BaseDTO):
