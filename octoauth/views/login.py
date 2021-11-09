@@ -36,7 +36,6 @@ def handle_login_form_submit(
     platform: str = Form(None),
     browser: str = Form(None),
     x_real_ip: Optional[str] = Header(None),
-    x_forwarded_for: Optional[str] = Header(None),
 ):
     try:
         ip_address = request.client[0] or x_real_ip
