@@ -12,7 +12,7 @@ install: $(VIRTUALENV_PATH) ## Install dev. dependencies in virtualenv
 	$(VIRTUALENV_BIN)/pip install -r requirements/dev.txt
 
 serve: $(VIRTUALENV_PATH) ## Run dev. server with hot reload
-	$(VIRTUALENV_BIN)/uvicorn --factory octoauth.webapp:OctoAuthASGI --port 7000 --reload
+	$(VIRTUALENV_BIN)/uvicorn --factory octoauth.webapp:OctoAuthASGI --proxy-headers --port 7000 --reload
 
 populate: $(VIRTUALENV_PATH) ## Populate database
 	$(VIRTUALENV_BIN)/python -m scripts.populate

@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, Form, Query, Request, status
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Form, Header, Query, Request, status
 from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -33,9 +35,11 @@ def handle_login_form_submit(
     password: str = Form(...),
     platform: str = Form(None),
     browser: str = Form(None),
+    x_real_ip: Optional[str] = Header(None),
+    x_forwarded_for: Optional[str] = Header(None),
 ):
     try:
-        ip_address = request.client[0]
+        ip_address = request.client[0] or x_real_ip
         account_dto = AccountService.authenticate(username, password)
         session_id = AccountService.create_session(account_dto, ip_address, platform, browser)
     except AuthenticationError as error:
