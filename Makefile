@@ -15,7 +15,7 @@ serve: $(VIRTUALENV_PATH) ## Run dev. server with hot reload
 	$(VIRTUALENV_BIN)/uvicorn --factory octoauth.webapp:OctoAuthASGI --port 7000 --reload
 
 populate: $(VIRTUALENV_PATH) ## Populate database
-	$(VIRTUALENV_BIN)/python -m snippets.populate
+	$(VIRTUALENV_BIN)/python -m scripts.populate
 
 clean: $(VIRTUALENV_PATH) ## Format code, sort import and remove useless vars/imports
 	# remove all unused imports
