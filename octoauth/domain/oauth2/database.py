@@ -72,8 +72,10 @@ class RefreshToken(DBModel):
 
     __tablename__ = "refresh_tokens"
 
-    refresh_token = Column(String(36), primary_key=True)
+    refresh_token = Column(String(36), primary_key=True, default=generate_uid)
     expires = Column(DateTime, nullable=False)
+    account_uid = Column(String(36), ForeignKey("accounts.uid"), nullable=False)
+    client_id = Column(String(36), ForeignKey("applications.client_id"), nullable=False)
 
     grants = relationship("Grant", secondary=refresh_token_grants)
 

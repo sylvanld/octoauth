@@ -15,6 +15,7 @@ from .database import (
     AuthorizationCode,
     AuthorizedRedirectURI,
     Grant,
+    RefreshToken,
     Scope,
 )
 from .dtos import (
@@ -24,6 +25,7 @@ from .dtos import (
     ApplicationUpdateDTO,
     RedirectURIEditDTO,
     RedirectURIReadDTO,
+    RefreshTokenDTO,
     ScopeDTO,
     TokenGrantDTO,
     TokenRequestDTO,
@@ -158,6 +160,33 @@ class ScopeService:
             Grant.create(account_uid=account_uid, client_id=client_id, scope_code=scope_code)
 
 
+class RefreshTokenService:
+    @staticmethod
+    @use_database
+    def get_refresh_token_info(refresh_token: str) -> RefreshTokenDTO:
+        refresh = RefreshToken.find_one(refresh_token=refresh_token)
+        return RefreshTokenDTO(
+            account_uid=refresh.account_uid,
+            client_id=refresh.client_id,
+            scopes=[grant.scope_code for grant in refresh.grants],
+        )
+
+    @staticmethod
+    @use_database
+    def generate_refresh_token(account_uid: str, client_id: str, scopes: List[str]) -> str:
+        application_grants = Grant.query.filter(
+            Grant.account_uid == account_uid, Grant.client_id == client_id, Grant.scope_code.in_(scopes)
+        ).all()
+
+        refresh_token = RefreshToken.create(
+            account_uid=account_uid,
+            client_id=client_id,
+            expires=datetime.utcnow() + SETTINGS.REFRESH_TOKEN_EXPIRES,
+            grants=application_grants,
+        )
+        return refresh_token.refresh_token
+
+
 class AuthorizationService:
     @classmethod
     @use_database
@@ -226,7 +255,7 @@ class TokenService:
 
     @staticmethod
     @use_database
-    def generate_token_from_authorization_code(request: TokenRequestDTO):
+    def generate_token_from_authorization_code(request: TokenRequestDTO) -> TokenGrantDTO:
         TokenRequestValidator.validate_authorization_code(request)
 
         # retrieve account_uid from authorization_code
@@ -274,6 +303,9 @@ class TokenService:
                 expires=SETTINGS.ACCESS_TOKEN_EXPIRES,
                 scope=",".join(token_scopes),
             ),
+            refresh_token=RefreshTokenService.generate_refresh_token(
+                account_uid=authorization_code.account_uid, client_id=request.client_id, scopes=token_scopes
+            ),
             scopes=token_scopes,
             expires=expires.timestamp(),
             token_type="Bearer",
@@ -286,5 +318,22 @@ class TokenService:
 
     @staticmethod
     @use_database
-    def generate_token_from_refresh_token(request: TokenRequestDTO):
+    def generate_token_from_refresh_token(request: TokenRequestDTO) -> TokenGrantDTO:
+        # TODO: allow changing scope with a subset of originals ones
         TokenRequestValidator.validate_refresh_token(request)
+        token_info = RefreshTokenService.get_refresh_token_info(request.refresh_token)
+        expires = datetime.utcnow() + SETTINGS.ACCESS_TOKEN_EXPIRES
+        return TokenGrantDTO(
+            access_token=generate_access_token(
+                account_uid=token_info.account_uid,
+                client_id=token_info.client_id,
+                expires=SETTINGS.ACCESS_TOKEN_EXPIRES,
+                scope=",".join(token_info.scopes),
+            ),
+            refresh_token=RefreshTokenService.generate_refresh_token(
+                account_uid=token_info.account_uid, client_id=token_info.client_id, scopes=token_info.scopes
+            ),
+            scopes=token_info.scopes,
+            expires=expires.timestamp(),
+            token_type="Bearer",
+        )

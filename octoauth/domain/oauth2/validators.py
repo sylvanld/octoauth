@@ -33,3 +33,5 @@ class TokenRequestValidator:
         """
         Ensure request contains all params required in refresh_token request.
         """
+        if not request.refresh_token:
+            raise ValueError("Missing 'refresh_token' for authorization with request token.")

@@ -127,3 +127,10 @@ class AuthorizeQueryParams:
     state: str = None
     code_challenge: str = None
     code_challenge_method: ChallengeMethod = None
+
+
+@dataclass
+class RefreshTokenDTO:
+    account_uid: Optional[str]
+    client_id: str
+    scopes: List[str]

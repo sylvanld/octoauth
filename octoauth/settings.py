@@ -37,6 +37,7 @@ class Settings:
     SMTP_PASSWORD: str
 
     AUTHORIZATION_CODE_EXPIRES: timedelta
+    REFRESH_TOKEN_EXPIRES: timedelta
     SESSION_COOKIE_LIFETIME: timedelta
 
 
@@ -59,6 +60,7 @@ DEVELOPMENT_SETTINGS = Settings(
     SMTP_USERNAME="python27bot@gmail.com",
     SMTP_PASSWORD="bcvpeehtvxoixmao",
     AUTHORIZATION_CODE_EXPIRES=timedelta(seconds=15),
+    REFRESH_TOKEN_EXPIRES=timedelta(days=10),
     SESSION_COOKIE_LIFETIME=timedelta(days=30),
 )
 

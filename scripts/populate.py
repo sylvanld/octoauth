@@ -21,6 +21,13 @@ ApplicationService.create(ApplicationCreateDTO(
     icon_uri="https://cdn-icons-png.flaticon.com/512/2111/2111624.png"
 ))
 
+ApplicationService.create(ApplicationCreateDTO(
+    name="OctoAuth",
+    description="Account managements for Sortify.",
+    client_id="octoauth",
+    icon_uri="https://account.sortify.local/octoauth.png"
+))
+
 ScopeService.create(ScopeDTO(
     code="groups:read",
     description="View your OctoAuth groups."
