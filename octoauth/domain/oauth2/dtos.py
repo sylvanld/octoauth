@@ -43,7 +43,7 @@ class RedirectURIReadDTO(BaseDTO):
 class TokenGrantDTO(BaseDTO):
     access_token: str
     refresh_token: Optional[str]
-    expires: int
+    expires_in: int
     token_type: str
     scopes: List[str] = []
 

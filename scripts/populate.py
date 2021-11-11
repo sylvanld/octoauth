@@ -8,10 +8,17 @@ DBModel.metadata.create_all()
 
 
 AccountService.create(AccountCreateDTO(
-    username="hoshiyosan",
-    email="sledeunf@gmail.com",
-    password="démo",
-    profile_url="https://m.media-amazon.com/images/I/71hZpyFFp0L._SS500_.jpg"
+    username="admin",
+    password="admin",
+    email="admin@example.com",
+    profile_url="https://viniloydecoracion.com/632-thickbox_default/scarface-movie-decal.jpg"
+))
+
+AccountService.create(AccountCreateDTO(
+    username="user",
+    password="user",
+    email="user@example.com",
+    profile_url="https://cdn3.iconfinder.com/data/icons/diversity-avatars-vol-2/64/captain-jack-sparrow-pirate-carribean-512.png"
 ))
 
 ApplicationService.create(ApplicationCreateDTO(
