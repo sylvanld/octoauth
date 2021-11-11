@@ -24,7 +24,4 @@ def code_verifier_to_challenge(code_verifier: str) -> str:
         msg = "Parameter `code_verifier` must verify "
         msg += "`43 <= len(code_verifier) <= 128`."
         raise ValueError(msg)
-    hashed = hashlib.sha256(code_verifier.encode("ascii")).digest()
-    encoded = base64.urlsafe_b64encode(hashed)
-    code_challenge = encoded.decode("ascii")[:-1]
-    return code_challenge
+    return base64.b64encode(hashlib.sha256(code_verifier.encode("ascii")).hexdigest().encode("ascii")).decode("ascii")
