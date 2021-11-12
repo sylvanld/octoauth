@@ -101,7 +101,7 @@ class AuthorizationCode(DBModel):
 
     expires = Column(DateTime, nullable=False)
 
-    code_challenge = Column(String(64), nullable=True)
+    code_challenge = Column(String(88), nullable=True)
     code_challenge_method = Column(String(8), nullable=True)
 
     grants = relationship("Grant", secondary=authorization_code_grants)

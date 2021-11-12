@@ -55,21 +55,21 @@ def get_token(
         redirect_uri=redirect_uri,
     )
 
-    if grant_type == GrantType.AUTHORIZATION_CODE:
-        try:
+    try:
+        if grant_type == GrantType.AUTHORIZATION_CODE:
             token_grant = TokenService.generate_token_from_authorization_code(request_dto)
-        except AuthenticationError as error:
-            raise HTTPException(status_code=401, detail=str(error))
-        except ScopesNotGrantedError as error:
-            raise HTTPException(status_code=403, detail=str(error))
-    elif grant_type == GrantType.CLIENT_CREDENTIALS:
-        token_grant = TokenService.generate_token_from_client_credentials(request_dto)
-    elif grant_type == GrantType.REFRESH_TOKEN:
-        token_grant = TokenService.generate_token_from_refresh_token(request_dto)
-    else:
-        raise HTTPException(
-            status_code=400,
-            details=f"Unsupported value for parameter 'grant_type': {grant_type}. Supported values: token, code",
-        )
+        elif grant_type == GrantType.CLIENT_CREDENTIALS:
+            token_grant = TokenService.generate_token_from_client_credentials(request_dto)
+        elif grant_type == GrantType.REFRESH_TOKEN:
+            token_grant = TokenService.generate_token_from_refresh_token(request_dto)
+        else:
+            raise HTTPException(
+                status_code=400,
+                details=f"Unsupported value for parameter 'grant_type': {grant_type}. Supported values: token, code",
+            )
+    except AuthenticationError as error:
+        raise HTTPException(status_code=401, detail=str(error))
+    except ScopesNotGrantedError as error:
+        raise HTTPException(status_code=403, detail=str(error))
 
     return token_grant

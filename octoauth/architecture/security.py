@@ -1,14 +1,19 @@
 import os
 import uuid
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 
 import jwt
 import requests
 from cryptography.exceptions import InvalidKey
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+from fastapi.exceptions import HTTPException
+from fastapi.param_functions import Depends
+from fastapi.security import OAuth2PasswordBearer
 
 from octoauth.settings import SETTINGS
 
+BEARER_TOKEN_AUTH = OAuth2PasswordBearer(tokenUrl="token")
 SCRYPT_PARAMS = {"length": 32, "n": 2 ** 14, "r": 8, "p": 1}
 
 
@@ -36,19 +41,19 @@ def verify_password(password: str, hashed_password: str) -> bool:
     return True
 
 
-def generate_access_token(*, client_id: str, expires: timedelta, scope: str = None, account_uid: str = None):
+def generate_access_token(*, client_id: str, scopes: str = None, account_uid: str = None):
     """
     Generate an access token that can be a personal access token or an application token.
     """
     now = datetime.now()
-    expiration_date = now + expires
+    expiration_date = now + SETTINGS.ACCESS_TOKEN_EXPIRES
 
     return jwt.encode(
         {
             "exp": expiration_date.timestamp(),
             "sub": account_uid,
             "iat": now.timestamp(),
-            "scope": scope,
+            "scope": ",".join(scopes),
         },
         SETTINGS.ACCESS_TOKEN_PRIVATE_KEY,
         algorithm="RS256",
@@ -84,3 +89,22 @@ def get_ip_info(ip_address) -> dict:
         pass
 
     return info
+
+
+@dataclass
+class AccountToken:
+    account_uid: str
+    is_admin: bool = False
+
+
+def account_token_required(token: str = Depends(BEARER_TOKEN_AUTH)):
+    try:
+        payload = decode_access_token(token)
+        account_uid: str = payload.get("sub")
+        if account_uid is None:
+            raise HTTPException(
+                status_code=403, detail="This token does not contains information related to an account."
+            )
+        return AccountToken(account_uid=account_uid)
+    except ValueError as error:
+        raise HTTPException(status_code=403, detail=str(error))

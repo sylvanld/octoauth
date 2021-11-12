@@ -245,8 +245,7 @@ class TokenService:
             access_token=generate_access_token(
                 account_uid=request.account_uid,
                 client_id=request.client_id,
-                expires=SETTINGS.ACCESS_TOKEN_EXPIRES,
-                scope=request.scope,
+                scopes=request.scope.split(","),
             ),
             expires_in=SETTINGS.ACCESS_TOKEN_EXPIRES.total_seconds(),
             token_type="Bearer",
@@ -299,8 +298,7 @@ class TokenService:
             access_token=generate_access_token(
                 account_uid=authorization_code.account_uid,
                 client_id=request.client_id,
-                expires=SETTINGS.ACCESS_TOKEN_EXPIRES,
-                scope=",".join(token_scopes),
+                scopes=token_scopes,
             ),
             refresh_token=RefreshTokenService.generate_refresh_token(
                 account_uid=authorization_code.account_uid, client_id=request.client_id, scopes=token_scopes
@@ -320,13 +318,17 @@ class TokenService:
     def generate_token_from_refresh_token(request: TokenRequestDTO) -> TokenGrantDTO:
         # TODO: allow changing scope with a subset of originals ones
         TokenRequestValidator.validate_refresh_token(request)
-        token_info = RefreshTokenService.get_refresh_token_info(request.refresh_token)
+
+        try:
+            token_info = RefreshTokenService.get_refresh_token_info(request.refresh_token)
+        except ObjectNotFoundException:
+            raise AuthenticationError("Invalid refresh token")
+
         return TokenGrantDTO(
             access_token=generate_access_token(
                 account_uid=token_info.account_uid,
                 client_id=token_info.client_id,
-                expires=SETTINGS.ACCESS_TOKEN_EXPIRES,
-                scope=",".join(token_info.scopes),
+                scopes=token_info.scopes,
             ),
             refresh_token=RefreshTokenService.generate_refresh_token(
                 account_uid=token_info.account_uid, client_id=token_info.client_id, scopes=token_info.scopes

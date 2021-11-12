@@ -7,6 +7,7 @@ from octoauth.architecture.types import URL, Email, StringEnum
 
 class SessionDTO(BaseDTO):
     uid: str
+    account_uid: str
     expires_at: datetime
     issued_at: datetime
     ip_address: str

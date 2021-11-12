@@ -10,7 +10,7 @@ from octoauth.domain.accounts.authenticate import (
     authentication_required,
 )
 from octoauth.domain.accounts.services import AccountService
-from octoauth.exceptions import AuthenticationError
+from octoauth.exceptions import AuthenticationError, ObjectNotFoundException
 from octoauth.settings import SETTINGS
 
 router = APIRouter()
@@ -58,7 +58,10 @@ def handle_login_form_submit(
 def handle_login_form_submit(request: Request, redirect: str = "/login"):
     session_uid = request.cookies.get("session_id")
     if session_uid:
-        AccountService.revoke_session(session_uid)
+        try:
+            AccountService.revoke_session(session_uid)
+        except ObjectNotFoundException:
+            pass
     # once session is revoked, redirect to login page and clear cookie
     response = RedirectResponse(redirect, 303)
     response.set_cookie(

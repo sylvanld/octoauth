@@ -108,6 +108,12 @@ class AccountService:
 
     @staticmethod
     @use_database
+    def get_session(session_uid):
+        session = SessionCookie.find_one(uid=session_uid)
+        return SessionDTO.from_orm(session)
+
+    @staticmethod
+    @use_database
     def get_sessions(account_uid) -> List[SessionCookie]:
         session_cookies = SessionCookie.query.filter_by(account_uid=account_uid).all()
         return [SessionDTO.from_orm(session_cookie) for session_cookie in session_cookies]
@@ -115,7 +121,7 @@ class AccountService:
     @staticmethod
     @use_database
     def revoke_session(session_uid):
-        session = SessionCookie.get_by_uid(session_uid)
+        session = SessionCookie.find_one(uid=session_uid)
         session.delete()
 
     @staticmethod
