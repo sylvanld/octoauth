@@ -27,7 +27,7 @@ class Settings:
     ACCESS_TOKEN_PRIVATE_KEY: str
     ACCESS_TOKEN_PUBLIC_KEY: str
 
-    DASHBOARD_URL: str
+    ACCOUNT_DASHBOARD_URL: str
     DATABASE_URI: str
 
     MAILING_ENABLED: bool
@@ -49,8 +49,8 @@ SETTINGS = Settings(
         {"name": "accounts", "description": "Manage user account."},
         {"name": "groups", "description": "Manage groups and memberships."},
     ],
-    DATABASE_URI="postgresql://postgres:postgres@localhost:5432/octoauth",
-    DASHBOARD_URL=getenv("DASHBOARD_URL"),
+    DATABASE_URI=getenv("OCTOAUTH_DATABASE_URL"),
+    ACCOUNT_DASHBOARD_URL=getenv("ACCOUNT_DASHBOARD_URL"),
     ACCESS_TOKEN_EXPIRES=timedelta(minutes=15),
     ACCESS_TOKEN_PRIVATE_KEY=file_content("assets/private-key.pem"),
     ACCESS_TOKEN_PUBLIC_KEY=file_content("assets/public-key.pem"),

@@ -19,7 +19,7 @@ templates = Jinja2Templates("octoauth/views/templates")
 
 @router.get("/", dependencies=[Depends(authentication_required)])
 def dashboard():
-    return RedirectResponse(SETTINGS.DASHBOARD_URL, 303)
+    return RedirectResponse(SETTINGS.ACCOUNT_DASHBOARD_URL, 303)
 
 
 @router.get("/login", dependencies=[Depends(authentication_forbidden)])
