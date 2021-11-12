@@ -41,7 +41,7 @@ class Settings:
     SESSION_COOKIE_LIFETIME: timedelta
 
 
-DEVELOPMENT_SETTINGS = Settings(
+SETTINGS = Settings(
     API_TITLE="OctoAuth API",
     API_DESCRIPTION=("Custom SSO inspired from OIDC that exposes account management Rest services."),
     API_VERSION="0.0.1",
@@ -49,7 +49,7 @@ DEVELOPMENT_SETTINGS = Settings(
         {"name": "accounts", "description": "Manage user account."},
         {"name": "groups", "description": "Manage groups and memberships."},
     ],
-    DATABASE_URI="sqlite:///assets/database.sqlite",
+    DATABASE_URI="postgresql://postgres:postgres@localhost:5432/octoauth",
     DASHBOARD_URL=getenv("DASHBOARD_URL"),
     ACCESS_TOKEN_EXPIRES=timedelta(minutes=15),
     ACCESS_TOKEN_PRIVATE_KEY=file_content("assets/private-key.pem"),
@@ -63,6 +63,3 @@ DEVELOPMENT_SETTINGS = Settings(
     REFRESH_TOKEN_EXPIRES=timedelta(days=10),
     SESSION_COOKIE_LIFETIME=timedelta(days=30),
 )
-
-
-SETTINGS = DEVELOPMENT_SETTINGS

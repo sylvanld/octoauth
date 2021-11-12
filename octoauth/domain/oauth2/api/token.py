@@ -14,7 +14,7 @@ router = APIRouter()
 def get_token(
     grant_type: GrantType = Form(
         ...,
-        description="**Always mandatory**. Indicates which authorization flow is used to get an access token",
+        description="**Always mandatory**. Indicates which authorization flow is used to get an access token.",
     ),
     client_id: str = Form(
         None,
@@ -37,11 +37,11 @@ def get_token(
     ),
     code_verifier: Optional[str] = Form(
         None,
-        description='**Suitable for "authorization_code" flow only. Must be set if using PKCE** (i.e if you called /authorize endpoint with a "code_challenge")',
-    ),  # code verifier is mendatory only if code challenge was supplied at authorization
+        description='**Suitable for "authorization_code" flow only. Must be set if using PKCE.** (i.e if you called /authorize endpoint with a "code_challenge")',
+    ),
     redirect_uri: Optional[str] = Form(
         None,
-        description='**Suitable for "authorization_code" flow only**. Must be the same redirect_uri as the one used to retrieve authorization code',
+        description='**Suitable for "authorization_code" flow only**. Must be the same redirect_uri as the one used to retrieve authorization code.',
     ),
 ):
     request_dto = TokenRequestDTO(

@@ -21,7 +21,7 @@ clean: $(VIRTUALENV_PATH) ## Format code, sort import and remove useless vars/im
 	# remove all unused imports
 	$(VIRTUALENV_BIN)/autoflake -ir octoauth/ tests/ --remove-all-unused-imports --ignore-init-module-imports
 	# sort imports
-	$(VIRTUALENV_BIN)/isort octoauth/ tests/
+	$(VIRTUALENV_BIN)/isort --float-to-top octoauth/ tests/
 	# format code
 	$(VIRTUALENV_BIN)/black octoauth/ tests/
 

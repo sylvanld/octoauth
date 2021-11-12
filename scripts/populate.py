@@ -1,11 +1,15 @@
 from octoauth.architecture.database import DBModel
-from octoauth.domain.accounts.services import AccountService, AccountCreateDTO
+from octoauth.domain.accounts.services import AccountCreateDTO, AccountService
 from octoauth.domain.oauth2.dtos import ScopeDTO
-from octoauth.domain.oauth2.services import ApplicationService, ApplicationCreateDTO, ScopeService
+from octoauth.domain.oauth2.services import (
+    ApplicationCreateDTO,
+    ApplicationService,
+    ScopeService,
+)
+
 
 DBModel.metadata.drop_all()
 DBModel.metadata.create_all()
-
 
 AccountService.create(AccountCreateDTO(
     username="admin",
