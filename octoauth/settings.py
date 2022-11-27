@@ -10,6 +10,13 @@ def getenv(variable_name: str, default=None):
         raise ValueError(f"Missing environment variable {variable_name}")
     return value or default
 
+def get_boolean_env(variable_name: str, default=None):
+    value = getenv(variable_name, default)
+    if value == "true":
+        return True
+    elif value == "false":
+        return False
+    raise ValueError(f"Invalid boolean value for variable {variable_name}. Expected one of: true, false.")
 
 def file_content(filename) -> str:
     with open(filename, "r", encoding="utf-8") as file:
@@ -54,7 +61,7 @@ SETTINGS = Settings(
     ACCESS_TOKEN_EXPIRES=timedelta(minutes=15),
     ACCESS_TOKEN_PRIVATE_KEY=file_content("assets/private-key.pem"),
     ACCESS_TOKEN_PUBLIC_KEY=file_content("assets/public-key.pem"),
-    MAILING_ENABLED=False,
+    MAILING_ENABLED=get_boolean_env("OCTOAUTH_MAILING_ENABLED"),
     SMTP_HOST="smtp.gmail.com",
     SMTP_PORT=587,
     SMTP_USERNAME="python27bot@gmail.com",
