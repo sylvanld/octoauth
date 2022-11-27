@@ -2,6 +2,7 @@ import uuid
 from typing import Type
 
 from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Query, scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -82,8 +83,12 @@ def use_database(func):
     """
 
     def wrapper(*args, **kwargs):
-        with Session():
-            output = func(*args, **kwargs)
+        with Session() as session:
+            try:
+                output = func(*args, **kwargs)
+            except SQLAlchemyError as error:
+                session.rollback()
+                raise error
         return output
 
     return func
