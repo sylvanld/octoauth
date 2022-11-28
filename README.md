@@ -4,19 +4,21 @@
 
 ## Quickstart
 
-Create a folder that will contains OctoAuth assets.
+This section help you to quickly setup a èdevelopment version of OctoAuth API using docker-compose.
+
+1. Create a folder that will contains OctoAuth assets.
 
 ```
 mkdir assets/
 ```
 
-Generate an RSA private key that will be used to sign JWT.
+2. Generate an RSA private key that will be used to sign JWT.
 
 ```
 openssl genrsa -out assets/private-key.pem 4096
 ```
 
-Add the following docker-compose:
+3. Create a docker-compose containing the following:
 
 ```yaml
 version: "3.6"
@@ -34,13 +36,19 @@ services:
       OCTOAUTH_MAILING_ENABLED: "false"
 ```
 
-Let's try to use the API, first export API address
+4. Start container using docker-compose
+
+```
+docker-compose up octoauth
+```
+
+5. Let's try to use the API, first export API address
 
 ```bash
 export OCTOAUTH_URL="http://localhost:8000"
 ```
 
-Then create an Oauth2 client application
+6. Then create an Oauth2 client application
 
 ```bash
 curl -X POST "$OCTOAUTH_URL/api/oauth2/applications"    \
@@ -61,7 +69,7 @@ You should get a response like
 }
 ```
 
-Create a scope
+7. Create a scope
 
 ```bash
 curl -X POST "$OCTOAUTH_URL/api/oauth2/scopes"          \
@@ -75,7 +83,7 @@ A confirmation is received
 {"code":"playlists:read","description":"Read only access to all of your playlists!"}
 ```
 
-Now you can try to request access to this scope for your client application.
+8. Now you can try to request access to this scope for your client application.
 
 ```bash
 # open in your browser
