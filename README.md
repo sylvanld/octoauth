@@ -13,7 +13,7 @@ OctoAuth API can be configured using environment variables.
 |OCTOAUTH_DASHBOARD_URL|**REQUIRED**. URL of [octoauth accounts dashboard](https://github.com/sylvanld/octoauth-dashboard) which allows users to manage their account preferences and personal data.|-|
 |OCTOAUTH_DATABASE_URL|**REQUIRED**. [URL used by sqlalchemy](https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls) to connect to OctoAuth database.|-|
 |OCTOAUTH_MAILING_ENABLED|Boolean defining whether email must be sent to notify users, for example when account is created, etc..|false|
-|OCTOAUTH_JWT_PRIVATE_KEY_PATH|Path to an RSA private key [used to sign JWT](#jwt-private-key). If running OctoAuth in docker, don't forget to put it in a volume.|`assets/private-key.pem` (path is relative to `/octoauth` in docker image)|
+|OCTOAUTH_JWT_PRIVATE_KEY|Path to an RSA private key [used to sign JWT](#jwt-private-key). If running OctoAuth in docker, don't forget to put it in a volume.|`assets/private-key.pem` (path is relative to `/octoauth` in docker image)|
 
 ### JWT Private key
 
