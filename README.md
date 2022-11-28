@@ -90,6 +90,8 @@ A confirmation is received
 firefox "$OCTOAUTH_URL/authorize?client_id=yolo&redirect_uri=http://localhost:6000&scope=profile:read&response_type=token&show_consent_dialog=true"
 ```
 
+![authorization example](docs/images/authorization_example.png)
+
 ## Configuration
 
 OctoAuth API can be configured using environment variables. 
