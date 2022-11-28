@@ -59,7 +59,7 @@ SETTINGS = Settings(
     DATABASE_URI=getenv("OCTOAUTH_DATABASE_URL"),
     ACCOUNT_DASHBOARD_URL=getenv("ACCOUNT_DASHBOARD_URL"),
     ACCESS_TOKEN_EXPIRES=timedelta(minutes=15),
-    ACCESS_TOKEN_PRIVATE_KEY=file_content("assets/private-key.pem"),
+    ACCESS_TOKEN_PRIVATE_KEY=file_content(getenv("OCTOAUTH_JWT_PRIVATE_KEY_PATH", "assets/private-key.pem")),
     ACCESS_TOKEN_PUBLIC_KEY=file_content("assets/public-key.pem"),
     MAILING_ENABLED=get_boolean_env("OCTOAUTH_MAILING_ENABLED"),
     SMTP_HOST="smtp.gmail.com",
