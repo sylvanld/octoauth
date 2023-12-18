@@ -14,7 +14,7 @@ from fastapi.security import OAuth2PasswordBearer
 from octoauth.settings import SETTINGS
 
 BEARER_TOKEN_AUTH = OAuth2PasswordBearer(tokenUrl="token")
-SCRYPT_PARAMS = {"length": 32, "n": 2 ** 14, "r": 8, "p": 1}
+SCRYPT_PARAMS = {"length": 32, "n": 2**14, "r": 8, "p": 1}
 
 
 def hash_password(password: str) -> str:

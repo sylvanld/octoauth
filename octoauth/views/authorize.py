@@ -1,7 +1,7 @@
 from typing import List
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, Form, Query, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -35,8 +35,15 @@ def display_authorization_form(
         description="Boolean value that indicates whether consent dialog should be displayed even if permission has already been granted.",
     ),
 ):
-    application_dto = ApplicationService.find_one(client_id=authorization_params.client_id)
-    scopes = ScopeService.get_scopes_from_string(authorization_params.scope)
+    try:
+        application_dto = ApplicationService.find_one(client_id=authorization_params.client_id)
+    except:
+        raise HTTPException(400, "No client application registered named: %s" % authorization_params.client_id)
+
+    try:
+        scopes = ScopeService.get_scopes_from_string(authorization_params.scope)
+    except ValueError as error:
+        raise HTTPException(400, str(error))
 
     if not show_consent_dialog:
         required_scopes = set([scope.code for scope in scopes])

@@ -10,6 +10,7 @@ def getenv(variable_name: str, default=None):
         raise ValueError(f"Missing environment variable {variable_name}")
     return value or default
 
+
 def get_boolean_env(variable_name: str, default=None):
     value = getenv(variable_name, default)
     if value == "true":
@@ -17,6 +18,7 @@ def get_boolean_env(variable_name: str, default=None):
     elif value == "false":
         return False
     raise ValueError(f"Invalid boolean value for variable {variable_name}. Expected one of: true, false.")
+
 
 def file_content(filename) -> str:
     with open(filename, "r", encoding="utf-8") as file:

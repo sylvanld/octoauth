@@ -136,7 +136,7 @@ class ScopeService:
         if len(scopes) != len(scope_codes):
             existing_codes = set((scope.code for scope in scopes))
             missing_codes = scope_codes.difference(existing_codes)
-            raise ValueError(f"The following scopes does not exists {', '.join(missing_codes)}")
+            raise ValueError(f"The following scopes does not exists: {', '.join(missing_codes)}")
 
         return [ScopeDTO.from_orm(scope) for scope in scopes]
 
