@@ -1,4 +1,8 @@
-include .env.local
+-include .env.local
+
+export
+
+VIRTUALENV_PATH ?= .venv
 
 ##@ Development
 
@@ -9,27 +13,32 @@ $(VIRTUALENV_PATH):
 	virtualenv -p python3.8 $(VIRTUALENV_PATH)
 
 install: $(VIRTUALENV_PATH) ## Install dev. dependencies in virtualenv
-	$(VIRTUALENV_BIN)/pip install -r requirements/dev.txt
+	$(VIRTUALENV_PATH)/bin/pip install -r requirements/dev.txt
 
 serve: $(VIRTUALENV_PATH) ## Run dev. server with hot reload
-	$(VIRTUALENV_BIN)/uvicorn --factory octoauth.webapp:OctoAuthASGI --proxy-headers --port 7000 --reload
+	$(VIRTUALENV_PATH)/bin/uvicorn --factory octoauth.webapp:OctoAuthASGI --proxy-headers --port 7000 --reload
 
 populate: $(VIRTUALENV_PATH) ## Populate database
-	$(VIRTUALENV_BIN)/python -m scripts.populate
+	$(VIRTUALENV_PATH)/bin/python -m scripts.populate
 
 clean: $(VIRTUALENV_PATH) ## Format code, sort import and remove useless vars/imports
 	# remove all unused imports
-	$(VIRTUALENV_BIN)/autoflake -ir octoauth/ tests/ --remove-all-unused-imports --ignore-init-module-imports
+	$(VIRTUALENV_PATH)/bin/autoflake -ir octoauth/ tests/ --remove-all-unused-imports --ignore-init-module-imports
 	# sort imports
-	$(VIRTUALENV_BIN)/isort --float-to-top octoauth/ tests/
+	$(VIRTUALENV_PATH)/bin/isort --float-to-top octoauth/ tests/
 	# format code
-	$(VIRTUALENV_BIN)/black octoauth/ tests/
+	$(VIRTUALENV_PATH)/bin/black octoauth/ tests/
 
 lint: $(VIRTUALENV_PATH) ## Run pylint to check code quality
-	$(VIRTUALENV_BIN)/pylint octoauth/ tests/
+	$(VIRTUALENV_PATH)/bin/pylint octoauth/ tests/
 
 test: $(VIRTUALENV_PATH) ## Run project automated tests
-	$(VIRTUALENV_BIN)/python -m pytest tests/ -v
+	$(VIRTUALENV_PATH)/bin/python -m pytest tests/ -v
+
+##@ Docker commands
+
+build:
+	docker build -t sylvanld/octoauth:latest .
 
 ##@ Git tools
 
